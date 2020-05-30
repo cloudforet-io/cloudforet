@@ -48,5 +48,5 @@ The SpaceONE mailing lists are hosted through groups.io.
 [User Guides]: https://spaceone-dev.gitbook.io/user-guide/
 [Developer Guides]: https://developer.spaceone.dev
 [SpaceONE Q&A]: https://gitter.im/spaceone-dev/QnA
-[Mailing List]: https://groups.io/g/space-dev
+[Mailing List]: https://groups.io/g/spaceone
 [Join]: https://groups.io/g/spaceone/join
