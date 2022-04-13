@@ -1,4 +1,4 @@
-name: "[dispatch] create all release branch"
+name: "[Dispatch] Create all release branch"
 on:
   workflow_dispatch:
     inputs:

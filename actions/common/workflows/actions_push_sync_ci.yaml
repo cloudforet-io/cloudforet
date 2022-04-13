@@ -1,4 +1,4 @@
-name: "Sync CI"
+name: "[Push] Sync CI"
 
 on:
   push:

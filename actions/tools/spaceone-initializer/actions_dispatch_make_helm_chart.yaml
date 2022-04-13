@@ -1,4 +1,4 @@
-name: "[Dispatch] Make Helm Chart"
+name: "[Dispatch] Make helm chart"
 
 on:
   workflow_dispatch:

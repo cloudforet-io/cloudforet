@@ -1,4 +1,4 @@
-name: "[dispatch] make final releases" # console-asset과 custom-report는 제외
+name: "[Dispatch] Make final releases" # console-asset과 custom-report는 제외
 on:
   workflow_dispatch:
     inputs:

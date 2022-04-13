@@ -1,4 +1,4 @@
-name: "[dispatch] create manual branch"
+name: "[Dispatch] Create manual branch"
 on:
   workflow_dispatch:
     inputs:
