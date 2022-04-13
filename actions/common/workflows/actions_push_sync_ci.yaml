@@ -9,19 +9,18 @@ on:
     paths-ignore:
       - '.github/**'
       - 'deploy/helm/**'
-      - 'proto/spaceone/api/**'
       - 'src/VERSION'
   workflow_dispatch:
 
 env:
-  workflow_file_name: deploy.yaml
-  owner: spaceone-dev
-  repo: actions
+  workflow_file_name: dispatch_workflow_deploy.yaml
+  owner: cloudforet-io
+  repo: cloudforet
   ref: master
 
 jobs:
   master_push:
-    if: github.event_name == 'push'
+    if: ${{ github.event_name == 'push' }}
     runs-on: ubuntu-latest
     steps:
       - name: git pull - from branch
@@ -52,7 +51,7 @@ jobs:
           wait_workflow: true
 
   pull_workflows:
-    if: github.event_name == 'workflow_dispatch'
+    if: ${{ github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     steps:
       - name: git pull

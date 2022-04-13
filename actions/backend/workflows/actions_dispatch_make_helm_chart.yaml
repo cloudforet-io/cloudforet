@@ -1,4 +1,5 @@
-name: "Make Helm Chart"
+name: "[Dispatch] Make Helm Chart"
+
 on:
   workflow_dispatch:
   repository_dispatch:

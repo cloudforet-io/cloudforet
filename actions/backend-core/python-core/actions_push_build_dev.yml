@@ -1,1 +1,14 @@
-# 땡처리
+name: "[Push] Build dev"
+
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [master_push]
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: sync
+        runs:
+          echo "Workflow file is updated."

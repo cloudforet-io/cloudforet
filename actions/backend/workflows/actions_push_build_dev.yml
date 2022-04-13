@@ -1,4 +1,5 @@
-name: "Build Dev"
+name: "[Push] Build dev"
+
 on:
   workflow_dispatch:
   repository_dispatch:

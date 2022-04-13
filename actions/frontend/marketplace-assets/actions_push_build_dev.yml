@@ -1,6 +1,8 @@
-name: "[CI]build_dev"
+name: "[Push] Build dev"
+
 on:
-  repository_dispatch: ## branch push가 일어날때는 sync만 진행됨.
+  workflow_dispatch:
+  repository_dispatch:
     types: [master_push]
 
 jobs:
@@ -9,4 +11,4 @@ jobs:
     steps:
       - name: sync
         runs:
-          echo "sync"
+          echo "Workflow file is updated."

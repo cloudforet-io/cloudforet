@@ -1,4 +1,5 @@
-name: "Release"
+name: "[Dispatch] Release"
+
 on:
   repository_dispatch:
     types: [create_release_branch]

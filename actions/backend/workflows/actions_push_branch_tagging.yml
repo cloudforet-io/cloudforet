@@ -1,8 +1,6 @@
-name: "[CI]branch tagging"
+name: "[Push] Branch tagging"
+
 on:
-  push:
-    tags:
-      - "v*.*"
   workflow_dispatch:
     inputs:
       tag:

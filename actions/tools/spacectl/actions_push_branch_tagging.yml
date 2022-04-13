@@ -1,8 +1,6 @@
-name: "[CI]branch tagging"
+name: "[Push] Branch tagging"
+
 on:
-  push:
-    tags:
-      - "v*.*"
   workflow_dispatch:
     inputs:
       tag:
@@ -96,46 +94,37 @@ jobs:
           \git tag -f ${{ env.VERSION }} 
           git push && \git push -f origin "${{ env.VERSION }}"
 
-  # pypi:
-  #   if: github.repository_owner == 'spaceone-dev'
-  #   needs: [condition_check, update_local_version_file]
-  #   runs-on: ubuntu-latest
-  #   env:
-  #     VERSION: ${{ needs.condition_check.outputs.TAG }}
-  #     BRANCH: ${{ needs.condition_check.outputs.BRANCH }}
-  #   steps:
-  #     - uses: actions/checkout@v2
-  #       with:
-  #         ref: ${{ env.BRANCH }}
-  #     - name: set version
-  #       run: |
-  #         echo ${{ env.VERSION }} | cut -c 2- > src/VERSION
-  #     - name: Set up Python
-  #       uses: actions/setup-python@v2
-  #       with:
-  #         python-version: '3.8'
-  #     - name: Install dependencies
-  #       run: |
-  #           python -m pip install --upgrade pip
-  #           pip install setuptools wheel twine
-  #     - name: Build
-  #       run: |
-  #         cd src
-  #         python setup.py sdist bdist_wheel
-  #     - name: Upload Pypi
-  #       id: upload
-  #       run: |
-  #         cd src
-  #         twine upload dist/*.whl --username ${{ secrets.PYPI_USERNAME }} --password ${{ secrets.PYPI_PASSWORD }} --verbose
-  #     - name: Slack
-  #       if: always()
-  #       uses: 8398a7/action-slack@v3.2.0
-  #       with:
-  #         status: ${{job.status}}
-  #         fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
-  #         author_name: Github Action Slack
-  #       env:
-  #         SLACK_WEBHOOK_URL: ${{secrets.SLACK_WEBHOOK_URL}}
+  pypi:
+    if: github.repository_owner == 'spaceone-dev' && needs.condition_check.outputs.NOT_FIRST_TAG == 'false'
+    needs: [condition_check, update_local_version_file]
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ needs.condition_check.outputs.TAG }}
+      BRANCH: ${{ needs.condition_check.outputs.BRANCH }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ env.BRANCH }}
+      - name: set version
+        run: |
+          echo ${{ env.VERSION }} | cut -c 2- > src/VERSION
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+      - name: Install dependencies
+        run: |
+            python -m pip install --upgrade pip
+            pip install setuptools wheel twine
+      - name: Build
+        run: |
+          cd src
+          python setup.py sdist bdist_wheel
+      - name: Upload Pypi
+        id: upload
+        run: |
+          cd src
+          twine upload dist/*.whl --username ${{ secrets.PYPI_USERNAME }} --password ${{ secrets.PYPI_PASSWORD }} --verbose
 
   docker:
     needs: [condition_check, update_local_version_file]
@@ -194,10 +183,9 @@ jobs:
           push: true
           tags: ${{ secrets.ECR_REPO }}/${{ env.SERVICE }}:${{ env.VERSION }}
 
-
   notify_to_slack:
     if: github.repository_owner == 'spaceone-dev'
-    needs: [condition_check, update_local_version_file, docker]
+    needs: [condition_check, update_local_version_file, pypi, docker]
     runs-on: ubuntu-latest
     steps:
       - name: Slack

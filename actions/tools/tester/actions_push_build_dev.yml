@@ -1,16 +1,12 @@
 name: "[CI]master push"
-on:
-  push:
-    paths-ignore:
-      - '.github/**'
-    branches:
-      - master
 
+on:
   workflow_dispatch:
+  repository_dispatch:
+    types: [master_push]
 
 env:
   ORGANIZATION: pyengine
-
 
 jobs:
   versioning:

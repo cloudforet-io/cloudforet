@@ -1,4 +1,4 @@
-name: "[CI]pypi dev test"
+name: "[Dispatch] Build dev"
 on:
   workflow_dispatch:
     inputs:

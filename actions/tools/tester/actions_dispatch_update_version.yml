@@ -1,4 +1,5 @@
-name: "[CI]reflect branch update to master"
+name: "[Dispatch] Update version file"
+
 on:
   repository_dispatch:
     types: [update_master_version]
