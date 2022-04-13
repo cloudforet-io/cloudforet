@@ -1,0 +1,54 @@
+name: [dispatch] workflow deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      repository:
+        description: 'target repository'
+        required: true
+      sync_only:
+        description: 'sync only flag'
+        required: false
+      type:
+        description: 'trigger type'
+        required: false
+
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: set python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+      - name: install requirements
+        run: pip install -r requirements.txt
+      - name: set PAT_TOKEN env
+        run: echo "PAT_TOKEN=$(echo ${{ secrets.PAT_TOKEN }})" >> $GITHUB_ENV
+      - name: deploy
+        run: |
+          python src/main.py --repo ${{ github.event.inputs.repository }}
+
+  push:
+    runs-on: ubuntu-latest
+    if: ${{ !github.event.inputs.sync_only }}
+    needs: deploy
+    steps:
+      - uses: actions/checkout@v2
+      - name: Repository Dispatch
+        if: ${{ github.event.inputs.type }} == "branch"
+        uses: peter-evans/repository-dispatch@v1
+        with:
+          token: ${{ secrets.PAT_TOKEN }}
+          repository: ${{ github.event.inputs.repository }}
+          event-type: master_push
+      - name: Repository Dispatch
+        if: ${{ github.event.inputs.type }} == "tag"
+        uses: peter-evans/repository-dispatch@v1
+        with:
+          token: ${{ secrets.PAT_TOKEN }}
+          repository: ${{ github.event.inputs.repository }}
+          event-type: branch_tagging
+

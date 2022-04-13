@@ -1,0 +1,26 @@
+name: "[dispatch] init group"
+
+on:
+  workflow_dispatch:
+    inputs:
+      group:
+        description: 'target group'
+        required: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: 'init'
+    steps:
+      - uses: actions/checkout@v2
+      - name: set python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+      - name: install requirements
+        run: pip install -r requirements.txt
+      - name: set PAT_TOKEN env
+        run: echo "PAT_TOKEN=$(echo ${{ secrets.PAT_TOKEN }})" >> $GITHUB_ENV
+      - name: init deploy
+        run: |
+          python src/main.py --group ${{ github.event.inputs.group }} --init
