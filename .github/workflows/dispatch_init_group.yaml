@@ -1,4 +1,4 @@
-name: "[dispatch] init group"
+name: "[Dispatch] Init group"
 
 on:
   workflow_dispatch:

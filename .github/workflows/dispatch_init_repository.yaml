@@ -1,4 +1,4 @@
-name: "[dispatch] init repository"
+name: "[Dispatch] Init repository"
 
 on:
   workflow_dispatch:
