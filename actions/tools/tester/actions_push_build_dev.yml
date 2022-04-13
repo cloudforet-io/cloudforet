@@ -1,0 +1,59 @@
+name: "[CI]master push"
+on:
+  push:
+    paths-ignore:
+      - '.github/**'
+    branches:
+      - master
+
+  workflow_dispatch:
+
+env:
+  ORGANIZATION: pyengine
+
+
+jobs:
+  versioning:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.job1.outputs.VERSION }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: calculate current date
+        run: |
+          sudo ln -sf /usr/share/zoneinfo/Asia/Seoul /etc/localtime
+          echo "TIME=$(date +'%Y%m%d.%H%M%S')" >> $GITHUB_ENV
+      - name: calculate_version
+        id: job1
+        run: |
+          echo "::set-output name=VERSION::$(cat src/VERSION | cut -c 2-).${{ env.TIME }}"
+
+  docker:
+    if: github.repository_owner == 'spaceone-dev'
+    needs: versioning
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ needs.versioning.outputs.version }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: get service name
+        run: |
+          echo "SERVICE=$(echo ${{ github.repository }} | cut -c 14-)" >> $GITHUB_ENV
+      - name: Upload docker
+        uses: docker/build-push-action@v1
+        with:
+          path: .
+          repository: ${{ env.ORGANIZATION }}/${{ env.SERVICE }}
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          tags: latest,${{ env.VERSION }}
+          
+      - name: Slack
+        if: always()
+        uses: 8398a7/action-slack@v3.2.0
+        with:
+          status: ${{job.status}}
+          fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
+          author_name: Github Action Slack
+        env:
+          SLACK_WEBHOOK_URL: ${{secrets.SLACK_WEBHOOK_URL}}

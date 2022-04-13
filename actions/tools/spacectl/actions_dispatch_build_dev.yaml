@@ -1,0 +1,83 @@
+name: "[CI]pypi dev test"
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: '`vx.y.z-deva` 형태로 버전을 입력해주세요.'
+        required: true
+        default: v1.2.3-dev1
+
+jobs:
+  
+  condition_check:
+    runs-on: ubuntu-latest
+    outputs:
+      TAG: ${{ steps.set_env.outputs.TAG }}
+    steps:
+      - name: set TAG env
+        id: set_env
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]
+            then
+              echo "TAG=${{ github.event.inputs.tag }}" >> $GITHUB_ENV
+              echo "::set-output name=TAG::${{ github.event.inputs.tag }}"
+              echo "BRANCH=$(echo ${{ github.event.inputs.tag }} | cut -c 2-6 | awk '{print "release-"$1}')" >> $GITHUB_ENV
+              echo "::set-output name=BRANCH::$(echo ${{ github.event.inputs.tag }} | cut -c 2-6 | awk '{print "release-"$1}')"
+            else [[ "${{ github.event_name }}" == "push" ]]
+              echo "TAG=$(echo ${{ github.ref }} | cut -c 11-)" >> $GITHUB_ENV
+              echo "::set-output name=TAG::$(echo ${{ github.ref }} | cut -c 11-)"
+              echo "BRANCH=$(echo ${{ github.ref }} | cut -c 12-16 | awk '{print "release-"$1}')" >> $GITHUB_ENV
+              echo "::set-output name=BRANCH::$(echo ${{ github.ref }} | cut -c 12-16 | awk '{print "release-"$1}')"
+          fi
+      - name: if not test release, exit
+        run: |
+          if [[ !(${{ env.TAG }} =~ ^v[0-9]\.[0-9]\.[0-9]-dev(.*)$) ]];
+            then exit 1
+          fi
+
+  pypi:
+    if: github.repository_owner == 'spaceone-dev'
+    needs: [condition_check]
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ needs.condition_check.outputs.TAG }}
+      BRANCH: ${{ needs.condition_check.outputs.BRANCH }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ env.BRANCH }}
+      - name: set version
+        run: |
+          echo ${{ env.VERSION }} | cut -c 2- | sed -e 's/-//g' > src/VERSION
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+      - name: Install dependencies
+        run: |
+            python -m pip install --upgrade pip
+            pip install setuptools wheel twine
+      - name: Build
+        run: |
+          cd src
+          python setup.py sdist bdist_wheel
+      - name: Upload Pypi
+        id: upload
+        run: |
+          cd src
+          twine upload dist/*.whl --username ${{ secrets.PYPI_USERNAME }} --password ${{ secrets.PYPI_PASSWORD }} --verbose
+
+  notify_to_slack:
+    if: github.repository_owner == 'spaceone-dev'
+    needs: [condition_check, pypi]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Slack
+        if: always()
+        uses: 8398a7/action-slack@v3.2.0
+        with:
+          status: ${{job.status}}
+          fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
+          author_name: Github Action Slack
+        env:
+          SLACK_WEBHOOK_URL: ${{secrets.SLACK_WEBHOOK_URL}}

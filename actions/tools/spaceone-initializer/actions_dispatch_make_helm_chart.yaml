@@ -1,0 +1,72 @@
+name: "Make Helm Chart"
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [make_helm_chart]
+
+jobs:
+  helm:
+    if: github.repository_owner == 'spaceone-dev'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ env.BRANCH }}
+      - name: Install Helm
+        uses: azure/setup-helm@v1
+        with:
+          version: '3.4.0'
+      - name: Run Helm packaging
+        run: |
+          export cache_dir=/tmp/helm
+          mkdir -p "$cache_dir"
+          echo "Installing chart-releaser..."
+          curl -sSLo cr.tar.gz "https://github.com/helm/chart-releaser/releases/download/v1.2.0/chart-releaser_1.2.0_linux_amd64.tar.gz"
+          tar -xzf cr.tar.gz -C "$cache_dir"
+          rm -f cr.tar.gz
+
+          echo 'Adding cr directory to PATH...'
+          export PATH="$cache_dir:$PATH"
+
+          rm -rf .deploy
+
+          echo 'Print Version ...'
+          export SERVICE=$(echo ${{ github.repository }} | cut -d '/' -f2)
+          echo 'Update helm version in chart.yaml and values.yaml'
+          echo "SERVICE=${SERVICE}" >> $GITHUB_ENV
+
+          helm package deploy/helm --destination .deploy
+          cr upload -o spaceone-dev -r charts -p .deploy --token ${{ secrets.PAT_TOKEN }}
+          cr index -i ./index.yaml -p .deploy/ -o spaceone-dev -r charts -c https://spaceone-dev.github.io/charts --token ${{ secrets.PAT_TOKEN }}
+          cp index.yaml /tmp/index.yaml
+
+      - name: Check out chart repo
+        uses: actions/checkout@master
+        with:
+          repository: spaceone-dev/charts
+          ref: gh-pages
+          token: ${{ secrets.PAT_TOKEN }}
+      - name: Update Helm repository index.yaml
+        run: |
+          git config --global user.email admin@spaceone.dev
+          git config --global user.name admin-spaceone
+          cp /tmp/index.yaml ./
+          git add index.yaml
+          git pull
+          git commit -m "Add ${SERVICE} chart"
+          git push origin gh-pages
+
+  notify_to_slack:
+    if: github.repository_owner == 'spaceone-dev'
+    needs: [helm]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Slack
+        if: always()
+        uses: 8398a7/action-slack@v3.2.0
+        with:
+          status: ${{job.status}}
+          fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
+          author_name: Github Action Slack
+        env:
+          SLACK_WEBHOOK_URL: ${{secrets.SLACK_WEBHOOK_URL}}

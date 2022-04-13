@@ -1,0 +1,12 @@
+name: "[CI]build_dev"
+on:
+  repository_dispatch: ## branch push가 일어날때는 sync만 진행됨.
+    types: [master_push]
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: sync
+        runs:
+          echo "sync"

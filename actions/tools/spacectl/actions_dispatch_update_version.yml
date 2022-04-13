@@ -1,0 +1,46 @@
+name: "[CI]reflect branch update to master"
+on:
+  repository_dispatch:
+    types: [update_master_version]
+
+jobs:
+  reflect_branch_update:
+    env:
+      VERSION: ${{ github.event.client_payload.version }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: check version format
+        run: |
+          if [[ !(${{ env.VERSION }} =~ ^v[0-9]\.[0-9]\.[0-9](.*)$) ]];
+            then exit 1
+          fi
+      - name: get existing official version
+        run: |
+          echo "current_major=$(cat src/VERSION | cut -c 2- | cut -d'.' -f1)" >> $GITHUB_ENV
+          echo "current_minor=$(cat src/VERSION | cut -c 2- | cut -d'.' -f2 | cut -d'-' -f1)" >> $GITHUB_ENV
+          echo "new_major=$(echo ${{ env.VERSION }} | cut -c 2- | cut -d'.' -f1)" >> $GITHUB_ENV
+          echo "new_minor=$(echo ${{ env.VERSION }} | cut -c 2- | cut -d'.' -f2 | cut -d'-' -f1)" >> $GITHUB_ENV
+      - name: Is new_ver is latest?
+        run: |
+          if [ $(echo ${{ env.current_major }}) \> $(echo ${{ env.new_major }}) ]
+          then
+            echo "LATEST_TAG=false" >> $GITHUB_ENV
+          else
+            if [ $(echo ${{ env.current_minor }}) \> $(echo ${{ env.new_minor }}) ]
+            then
+              echo "LATEST_TAG=false" >> $GITHUB_ENV
+            else
+              echo "LATEST_TAG=true" >> $GITHUB_ENV
+            fi
+          fi
+      - name: Latest Update - update version file
+        if: ${{ env.LATEST_TAG }} == 'true'
+        uses: actions/checkout@v2
+      - run: |
+          echo ${{ env.VERSION }} > src/VERSION
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add .
+          git commit -m "[CI/CD] release version ${{ env.VERSION }}"
+          git push

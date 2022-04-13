@@ -1,0 +1,57 @@
+name: "[dispatch] create manual branch"
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: '`x.y.z` 형태로 버전을 입력해주세요. v접두사와 -rc0 접미사는 자동으로 첨가됩니다.'
+        required: true
+        default: 1.2.3
+      target:
+        description: 'repository name'
+        required: true
+        default: repo_name
+
+jobs:
+  condition_check:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          if [[ !(${{ github.event.inputs.tag }} =~ ^[0-9]\.[0-9]\.[0-9]$) ]];
+            then exit 1
+          fi
+  # Lack of concurrent job, make serial task
+  dispatch_create_workflow_svc_1:
+    strategy:
+      fail-fast: false
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    env:
+      TAG: ${{ github.event.inputs.tag }}
+    steps:
+      - name: task
+        uses: peter-evans/repository-dispatch@v1
+        with:
+          token: ${{ secrets.PAT_TOKEN }}
+          repository: spaceone-dev/${{ github.event.inputs.target }}
+          event-type: create_release_branch
+          client-payload: '{"version": "${{ env.TAG }}"}' 
+  
+   
+# docker/pypi : identity, inventory, monitoring, repository, statistics, secret, config, supervisor, plugin
+# docker만 : console-assets, custom-report, console-api, console
+# pypi만 : api, python-core
+
+  notify_to_slack:
+    if: github.repository_owner == 'spaceone-dev'
+    needs: [dispatch_create_workflow_svc_1]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Slack
+        if: always()
+        uses: 8398a7/action-slack@v3.2.0
+        with:
+          status: ${{job.status}}
+          fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
+          author_name: Github Action Slack
+        env:
+          SLACK_WEBHOOK_URL: ${{secrets.SLACK_WEBHOOK_URL}}

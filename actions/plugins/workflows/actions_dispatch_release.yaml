@@ -1,0 +1,167 @@
+name: "[Dispatch] Release"
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: '`vx.y.z` 형태로 버전을 입력해주세요.'
+        required: true
+        default: v1.0.0
+
+env:
+  TAG: ${{ github.event.inputs.tag }}
+  SLACK_WEBHOOK_URL: ${{secrets.SLACK_WEBHOOK_URL}}
+
+jobs:
+  condition_check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: check version format
+        run: |
+          if [[ !(${{ env.TAG }} =~ ^v[0-9]\.[0-9]?[0-9]\.[0-9]?[0-9]$) ]];
+          then
+            echo "You entered an incorrect version format."
+            exit 1
+          fi
+      - name: debugging
+        run: |
+          echo "major=$(echo ${{env.TAG}} | cut -c 2- | cut -d'.' -f1)"
+          echo "minor=$(echo ${{env.TAG}} | cut -c 2- | cut -d'.' -f2)"
+          echo "patch=$(echo ${{env.TAG}} | cut -c 2- | cut -d'.' -f3)"
+      - name: notice when job fails
+        if: failure()
+        uses: 8398a7/action-slack@v3.2.0
+        with:
+          status: ${{job.status}}
+          fields: repo,workflow,job
+          author_name: Github Action Slack
+
+  update_master_branch_version_file:
+    needs: condition_check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.PAT_TOKEN }}
+      - name: get versions
+        run: |
+          echo "old_version=$(cat src/VERSION)" >> $GITHUB_ENV
+          echo "old_major=$(cat src/VERSION | cut -c 2- | cut -d'.' -f1)" >> $GITHUB_ENV
+          echo "old_minor=$(cat src/VERSION | cut -c 2- | cut -d'.' -f2)" >> $GITHUB_ENV
+          echo "old_patch=$(cat src/VERSION | cut -c 2- | cut -d'.' -f3)" >> $GITHUB_ENV
+          echo "new_major=$(echo ${{ env.TAG }} | cut -c 2- | cut -d'.' -f1)" >> $GITHUB_ENV
+          echo "new_minor=$(echo ${{ env.TAG }} | cut -c 2- | cut -d'.' -f2)" >> $GITHUB_ENV
+          echo "new_patch=$(echo ${{ env.TAG }} | cut -c 2- | cut -d'.' -f3)" >> $GITHUB_ENV
+      - name: compare versions
+        run: |
+          if [ ${{ env.TAG }} == ${{ env.old_version }} ];
+          then
+            echo "New version cannot be the same as old version."
+            exit 1
+          elif [ ${{ env.old_major }} \> ${{ env.new_major }} ];
+          then
+            echo "Old major version cannot be greater than new major version"
+            exit 1
+          elif [ ${{ env.old_minor }} \> ${{ env.new_minor }} ];
+          then
+            echo "Old minor version cannot be greater than new minor version"
+            exit 1
+          elif [ ${{ env.old_minor }} == ${{ env.new_minor }} ];
+          then
+            if [ ${{ env.old_patch }} \> ${{ env.new_patch }} ];
+            then
+              echo "Old patch version cannot be greater than new patch version in same minor version"
+              exit 1
+            else
+              echo "version=${{ env.TAG }}"
+            fi
+          else
+            echo "version=${{ env.TAG }}"
+          fi
+      - name: update version file
+        run: |
+          echo ${{ env.TAG }} > src/VERSION
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add .
+          git commit -m "[CI/CD] release version ${{ env.TAG }}"
+      - name: push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.PAT_TOKEN }}
+          branch: master
+      - name: notice when job fails
+        if: failure()
+        uses: 8398a7/action-slack@v3.2.0
+        with:
+          status: ${{job.status}}
+          fields: repo,workflow,job
+          author_name: Github Action Slack
+
+  tagging:
+    needs: update_master_branch_version_file
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.PAT_TOKEN }}
+      - name: git tagging
+        run: |
+          git tag ${{ env.TAG }}
+          git push origin "${{ env.TAG }}"
+      - name: notice when job fails
+        if: failure()
+        uses: 8398a7/action-slack@v3.2.0
+        with:
+          status: ${{job.status}}
+          fields: repo,workflow,job
+          author_name: Github Action Slack
+
+  docker:
+    needs: tagging
+    if: github.repository_owner == 'spaceone-dev'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: get version
+        run: |
+          echo "VERSION=$(echo ${{ env.TAG }} | cut -c 2-)" >> $GITHUB_ENV
+      - name: get service name
+        run: |
+          echo "SERVICE=$(echo ${{ github.repository }} | cut -d '/' -f2)" >> $GITHUB_ENV
+      - name: Build and push to pyengine
+        uses: docker/build-push-action@v1
+        with:
+          path: .
+          repository: pyengine/${{ env.SERVICE }}
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          tags: ${{ env.VERSION }}
+      - name: Build and push to spaceone
+        uses: docker/build-push-action@v1
+        with:
+          path: .
+          repository: spaceone/${{ env.SERVICE }}
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          tags: ${{ env.VERSION }}
+      - name: Notice when job fails
+        if: failure()
+        uses: 8398a7/action-slack@v3.2.0
+        with:
+          status: ${{job.status}}
+          fields: repo,workflow,job
+          author_name: Github Action Slack
+
+  notification:
+    if: github.repository_owner == 'spaceone-dev'
+    needs: docker
+    runs-on: ubuntu-latest
+    steps:
+      - name: Slack
+        if: always()
+        uses: 8398a7/action-slack@v3.2.0
+        with:
+          status: ${{job.status}}
+          fields: repo,message,commit,author,action,ref,workflow,job
+          author_name: Github Action Slack

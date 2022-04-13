@@ -1,0 +1,201 @@
+name: "[CI]branch tagging"
+on:
+  push:
+    tags:
+      - "v*.*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: '`vx.y.z-릴리즈` 형태로 버전을 입력해주세요. `vx.y.z`도 가능합니다.'
+        required: true
+        default: v1.2.3-rc1
+  repository_dispatch:
+    types: [branch_tagging]
+
+jobs:
+  
+  condition_check:
+    runs-on: ubuntu-latest
+    outputs:
+      NOT_FIRST_TAG: ${{ steps.job1.outputs.not_first_tag }}
+      BRANCH: ${{ steps.set_env.outputs.BRANCH }}
+      TAG: ${{ steps.set_env.outputs.TAG }}
+    steps:
+      - name: set TAG env
+        id: set_env
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]
+            then
+              echo "TAG=${{ github.event.inputs.tag }}" >> $GITHUB_ENV
+              echo "::set-output name=TAG::${{ github.event.inputs.tag }}"
+              echo "BRANCH=$(echo ${{ github.event.inputs.tag }} | cut -c 2-6 | awk '{print "release-"$1}')" >> $GITHUB_ENV
+              echo "::set-output name=BRANCH::$(echo ${{ github.event.inputs.tag }} | cut -c 2-6 | awk '{print "release-"$1}')"
+          elif [[ "${{ github.event_name }}" == "push" ]]
+            then
+              echo "TAG=$(echo ${{ github.ref }} | cut -c 11-)" >> $GITHUB_ENV
+              echo "::set-output name=TAG::$(echo ${{ github.ref }} | cut -c 11-)"
+              echo "BRANCH=$(echo ${{ github.ref }} | cut -c 12-16 | awk '{print "release-"$1}')" >> $GITHUB_ENV
+              echo "::set-output name=BRANCH::$(echo ${{ github.ref }} | cut -c 12-16 | awk '{print "release-"$1}')"
+            else
+              echo "TAG=$(echo ${{ github.event.client_payload.version }})" >> $GITHUB_ENV
+              echo "::set-output name=TAG::$(echo ${{ github.event.client_payload.version }})"
+              echo "BRANCH=$(echo ${{ github.event.client_payload.version }} | cut -c 2-6 | awk '{print "release-"$1}')" >> $GITHUB_ENV
+              echo "::set-output name=BRANCH::$(echo ${{ github.event.client_payload.version }} | cut -c 2-6 | awk '{print "release-"$1}')"
+          fi
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{env.BRANCH}}
+      - name: totally same version, redeploy dockerhub
+        id: job1
+        run: |
+          if [ "$(cat src/VERSION)" == "${{ env.TAG }}" ]
+            then echo "::set-output name=not_first_tag::true"
+            else echo "::set-output name=not_first_tag::false"
+          fi
+
+  update_master_branch_version_file:
+    needs: condition_check
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ needs.condition_check.outputs.TAG }}
+    if: needs.condition_check.outputs.NOT_FIRST_TAG == 'false'
+    steps:
+      - name: update master version
+        uses: peter-evans/repository-dispatch@v1
+        with:
+          token: ${{ secrets.PAT_TOKEN }}
+          event-type: update_master_version
+          client-payload: '{"version": "${{ env.TAG }}"}'
+
+  update_local_version_file:
+    needs: condition_check
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ needs.condition_check.outputs.TAG }}
+      BRANCH: ${{ needs.condition_check.outputs.BRANCH }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ env.BRANCH }}
+      - name: git config
+        if: needs.condition_check.outputs.NOT_FIRST_TAG == 'false'
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          echo ${{ env.VERSION }} > src/VERSION
+          git add .
+          git commit -m "[CI/CD] release version ${{ env.VERSION }}"
+      - name: task
+        if: needs.condition_check.outputs.NOT_FIRST_TAG == 'false' && (github.event_name == 'workflow_dispatch' || github.event_name == 'repository_dispatch')
+        run: |
+          git tag ${{ env.VERSION }} 
+          git push --atomic origin ${{ env.BRANCH }} ${{ env.VERSION }}
+      - name: task
+        if: needs.condition_check.outputs.NOT_FIRST_TAG == 'false' && (github.event_name == 'push')
+        run: |
+          \git tag -f ${{ env.VERSION }} 
+          git push && \git push -f origin "${{ env.VERSION }}"
+
+  pypi:
+    if: github.repository_owner == 'spaceone-dev' && needs.condition_check.outputs.NOT_FIRST_TAG == 'false'
+    needs: [condition_check, update_local_version_file]
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ needs.condition_check.outputs.TAG }}
+      BRANCH: ${{ needs.condition_check.outputs.BRANCH }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ env.BRANCH }}
+      - name: set version
+        run: |
+          echo ${{ env.VERSION }} | cut -c 2- > src/VERSION
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+      - name: Install dependencies
+        run: |
+            python -m pip install --upgrade pip
+            pip install setuptools wheel twine
+      - name: Build
+        run: |
+          cd src
+          python setup.py sdist bdist_wheel
+      - name: Upload Pypi
+        id: upload
+        run: |
+          cd src
+          twine upload dist/*.whl --username ${{ secrets.PYPI_USERNAME }} --password ${{ secrets.PYPI_PASSWORD }} --verbose
+
+  docker:
+    needs: [condition_check, update_local_version_file]
+    if: github.repository_owner == 'spaceone-dev'
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ needs.condition_check.outputs.TAG }}
+      BRANCH: ${{ needs.condition_check.outputs.BRANCH }}
+    steps:
+      - 
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ env.BRANCH }}
+      -
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      - 
+        name: versioning
+        run: |
+          echo "VERSION=$(echo ${{ env.VERSION }} | cut -c 2-)" >> $GITHUB_ENV
+      - 
+        name: get service name
+        run: |
+          echo "SERVICE=$(echo ${{ github.repository }} | cut -d '/' -f2)" >> $GITHUB_ENV
+      -
+        name: Login to DockerHub
+        uses: docker/login-action@v1 
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      -
+        name: Build and push
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          tags: spaceone/${{ env.SERVICE }}:${{ env.VERSION }}
+      - 
+        name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      - 
+        name: Login to Amazon ECR
+        run: aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${{ secrets.ECR_REPO }}
+      -
+        name: Build and push
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.ECR_REPO }}/${{ env.SERVICE }}:${{ env.VERSION }}
+
+  notify_to_slack:
+    if: github.repository_owner == 'spaceone-dev'
+    needs: [condition_check, update_local_version_file, pypi, docker]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Slack
+        if: always()
+        uses: 8398a7/action-slack@v3.2.0
+        with:
+          status: ${{job.status}}
+          fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
+          author_name: Github Action Slack
+        env:
+          SLACK_WEBHOOK_URL: ${{secrets.SLACK_WEBHOOK_URL}}

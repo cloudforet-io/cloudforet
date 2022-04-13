@@ -1,0 +1,69 @@
+name: "Sync CI"
+
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - "v*.*"
+    paths-ignore:
+      - '.github/**'
+      - 'deploy/helm/**'
+      - 'proto/spaceone/api/**'
+      - 'src/VERSION'
+  workflow_dispatch:
+
+env:
+  workflow_file_name: deploy.yaml
+  owner: spaceone-dev
+  repo: actions
+  ref: master
+
+jobs:
+  master_push:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: git pull - from branch
+        if: ${{ github.event.ref_type == 'branch' }}
+        uses: convictional/trigger-workflow-and-wait@v1.3.0
+        with:
+          owner: ${{ env.owner }}
+          repo: ${{ env.repo }}
+          github_token: ${{ secrets.PAT_TOKEN }}
+          workflow_file_name: ${{ env.workflow_file_name }}
+          ref: ${{ env.ref }}
+          wait_interval: 10
+          inputs: '{"repository" : "${{ github.repository }}" , "type" : "branch"}'
+          trigger_workflow: true
+          wait_workflow: true
+      - name: git pull - from tag
+        if: ${{ github.event.ref_type == 'tag' }}
+        uses: convictional/trigger-workflow-and-wait@v1.3.0
+        with:
+          owner: ${{ env.owner }}
+          repo: ${{ env.repo }}
+          github_token: ${{ secrets.PAT_TOKEN }}
+          workflow_file_name: ${{ env.workflow_file_name }}
+          ref: ${{ env.ref }}
+          wait_interval: 10
+          inputs: '{"repository" : "${{ github.repository }} , "type" : "tag"}'
+          trigger_workflow: true
+          wait_workflow: true
+
+  pull_workflows:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: git pull
+        uses: convictional/trigger-workflow-and-wait@v1.3.0
+        with:
+          owner: ${{ env.owner }}
+          repo: ${{ env.repo }}
+          github_token: ${{ secrets.PAT_TOKEN }}
+          workflow_file_name: ${{ env.workflow_file_name }}
+          ref: ${{ env.ref }}
+          wait_interval: 10
+          inputs: '{"repository" : "${{ github.repository }}" , "sync_only" : "true"}'
+          trigger_workflow: true
+          wait_workflow: true

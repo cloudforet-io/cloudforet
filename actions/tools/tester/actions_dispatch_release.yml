@@ -1,0 +1,30 @@
+name: "[CI]create branch"
+on:
+  # workflow_dispatch:
+  #   inputs:
+  #     tag:
+  #       description: ' `x.y.z` 형태로 버전을 입력해주세요. v접두사와 -rc0 접미사는 자동으로 첨가됩니다.'
+  #       required: true
+  #       default: 1.2.3
+  repository_dispatch:
+    types: [create_release_branch]
+
+env:
+  VERSION: v${{ github.event.client_payload.version }}-rc1
+  BRANCH: release-${{ github.event.client_payload.version }}
+
+jobs:
+  create_branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: task
+        uses: actions/checkout@v2
+      - run: |
+          git checkout -b ${{ env.BRANCH }}
+          git push --set-upstream origin ${{ env.BRANCH }}
+      - name: dispatch
+        uses: peter-evans/repository-dispatch@v1
+        with:
+          token: ${{ secrets.PAT_TOKEN }}
+          event-type: branch_tagging
+          client-payload: '{"version": "${{ env.VERSION }}"}'

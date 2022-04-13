@@ -1,0 +1,31 @@
+name: "[CI]create branch"
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: ' `x.y` 형태로 버전을 입력해주세요. v접두사와 -rc0 접미사는 자동으로 첨가됩니다.'
+        required: true
+        default: 1.2
+  repository_dispatch:
+    types: [create_release_branch]
+
+env:
+  VERSION: v${{ github.event.inputs.tag }}-rc0
+  BRANCH: release-${{ github.event.inputs.tag }}
+
+jobs:
+  create_branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: task
+        uses: actions/checkout@v2
+      - run: |
+          echo ${{ env.VERSION }} > src/VERSION
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add .
+          git commit -m "[CI/CD] create branch ${{ env.BRANCH }}"
+          git tag ${{ env.VERSION }}
+          git push --atomic origin master ${{ env.VERSION }}
+          git checkout -b ${{ env.BRANCH }}
+          git push --set-upstream origin ${{ env.BRANCH }}
