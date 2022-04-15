@@ -53,14 +53,15 @@ jobs:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         force: true
 
-    - name: Push to Api-doc # Copy artifact with version into API doc
-      uses: andstor/copycat-action@v3
-      with:
-        personal_token: ${{ secrets.API_DOC_GITHUB_TOKEN }}
-        src_path: artifact
-        dst_path: /.
-        dst_owner: spaceone-dev
-        dst_repo_name: api-doc
+    # Temporarily Removed for Testing
+    # - name: Push to Api-doc # Copy artifact with version into API doc
+    #   uses: andstor/copycat-action@v3
+    #   with:
+    #     personal_token: ${{ secrets.API_DOC_GITHUB_TOKEN }}
+    #     src_path: artifact
+    #     dst_path: /.
+    #     dst_owner: spaceone-dev
+    #     dst_repo_name: api-doc
 
     - name: Update auth on artifact
       run: |
