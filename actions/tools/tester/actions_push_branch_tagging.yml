@@ -99,7 +99,7 @@ jobs:
           git push && \git push -f origin "${{ env.VERSION }}"
 
   pypi:
-    if: github.repository_owner == 'spaceone-dev' && needs.condition_check.outputs.NOT_FIRST_TAG == 'false'
+    if: github.repository_owner == 'cloudforet-io' && needs.condition_check.outputs.NOT_FIRST_TAG == 'false'
     needs: [condition_check, update_local_version_file]
     runs-on: ubuntu-latest
     env:
@@ -132,7 +132,7 @@ jobs:
 
   docker:
     needs: [condition_check, update_local_version_file]
-    if: github.repository_owner == 'spaceone-dev'
+    if: github.repository_owner == 'cloudforet-io'
     runs-on: ubuntu-latest
     env:
       VERSION: ${{ needs.condition_check.outputs.TAG }}
@@ -151,13 +151,13 @@ jobs:
         uses: docker/build-push-action@v1
         with:
           path: .
-          repository: spaceone/${{ env.SERVICE }}
+          repository: cloudforet/${{ env.SERVICE }}
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
           tags: ${{ env.VERSION }}
 
   notify_to_slack:
-    if: github.repository_owner == 'spaceone-dev'
+    if: github.repository_owner == 'cloudforet-io'
     needs: [condition_check, update_local_version_file, pypi, docker]
     runs-on: ubuntu-latest
     steps:

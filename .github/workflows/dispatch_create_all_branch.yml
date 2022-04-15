@@ -30,7 +30,7 @@ jobs:
         uses: peter-evans/repository-dispatch@v1
         with:
           token: ${{ secrets.PAT_TOKEN }}
-          repository: spaceone-dev/${{ matrix.target }}
+          repository: cloudforet-io/${{ matrix.target }}
           event-type: create_release_branch
           client-payload: '{"version": "${{ env.TAG }}"}'
 
@@ -53,7 +53,7 @@ jobs:
           while [ $check -eq '0' ];
           do
             echo "waiting"
-            if [ $(curl -s https://pypi.org/pypi/spaceone-core/json | jq -r '.releases | keys[]' | grep ${{ env.TAG }}rc1 | tail -1) == "${{ env.TAG }}rc1" ] && [ $(curl -s https://pypi.org/pypi/spaceone-api/json | jq -r '.releases | keys[]' | grep ${{ env.TAG }}rc1 | tail -1) == "${{ env.TAG }}rc1" ];
+            if [ $(curl -s https://pypi.org/pypi/cloudforet-core/json | jq -r '.releases | keys[]' | grep ${{ env.TAG }}rc1 | tail -1) == "${{ env.TAG }}rc1" ] && [ $(curl -s https://pypi.org/pypi/cloudforet-api/json | jq -r '.releases | keys[]' | grep ${{ env.TAG }}rc1 | tail -1) == "${{ env.TAG }}rc1" ];
               then export check=1
             fi
             sleep 1
@@ -62,7 +62,7 @@ jobs:
         uses: peter-evans/repository-dispatch@v1
         with:
           token: ${{ secrets.PAT_TOKEN }}
-          repository: spaceone-dev/${{ matrix.target }}
+          repository: cloudforet-io/${{ matrix.target }}
           event-type: create_release_branch
           client-payload: '{"version": "${{ env.TAG }}"}' 
   
@@ -85,7 +85,7 @@ jobs:
           while [ $check -eq '0' ];
           do
             echo "waiting"
-            if [ $(curl -s https://pypi.org/pypi/spaceone-core/json | jq -r '.releases | keys[]' | grep ${{ env.TAG }}rc1 | tail -1) == "${{ env.TAG }}rc1" ] && [ $(curl -s https://pypi.org/pypi/spaceone-api/json | jq -r '.releases | keys[]' | grep ${{ env.TAG }}rc1 | tail -1) == "${{ env.TAG }}rc1" ];
+            if [ $(curl -s https://pypi.org/pypi/cloudforet-core/json | jq -r '.releases | keys[]' | grep ${{ env.TAG }}rc1 | tail -1) == "${{ env.TAG }}rc1" ] && [ $(curl -s https://pypi.org/pypi/cloudforet-api/json | jq -r '.releases | keys[]' | grep ${{ env.TAG }}rc1 | tail -1) == "${{ env.TAG }}rc1" ];
               then export check=1
             fi
             sleep 1
@@ -94,7 +94,7 @@ jobs:
         uses: peter-evans/repository-dispatch@v1
         with:
           token: ${{ secrets.PAT_TOKEN }}
-          repository: spaceone-dev/${{ matrix.target }}
+          repository: cloudforet-io/${{ matrix.target }}
           event-type: create_release_branch
           client-payload: '{"version": "${{ env.TAG }}"}' 
  
@@ -116,7 +116,7 @@ jobs:
           while [ $check -eq '0' ];
           do
             echo "waiting"
-            if [ $(curl -s https://pypi.org/pypi/spaceone-core/json | jq -r '.releases | keys[]' | grep ${{ env.TAG }}rc1 | tail -1) == "${{ env.TAG }}rc1" ] && [ $(curl -s https://pypi.org/pypi/spaceone-api/json | jq -r '.releases | keys[]' | grep ${{ env.TAG }}rc1 | tail -1) == "${{ env.TAG }}rc1" ];
+            if [ $(curl -s https://pypi.org/pypi/cloudforet-core/json | jq -r '.releases | keys[]' | grep ${{ env.TAG }}rc1 | tail -1) == "${{ env.TAG }}rc1" ] && [ $(curl -s https://pypi.org/pypi/cloudforet-api/json | jq -r '.releases | keys[]' | grep ${{ env.TAG }}rc1 | tail -1) == "${{ env.TAG }}rc1" ];
               then export check=1
             fi
             sleep 1
@@ -125,7 +125,7 @@ jobs:
         uses: peter-evans/repository-dispatch@v1
         with:
           token: ${{ secrets.PAT_TOKEN }}
-          repository: spaceone-dev/${{ matrix.target }}
+          repository: cloudforet-io/${{ matrix.target }}
           event-type: create_release_branch
           client-payload: '{"version": "${{ env.TAG }}"}' 
     
@@ -134,7 +134,7 @@ jobs:
 # pypi만 : api, python-core
 
   notify_to_slack:
-    if: github.repository_owner == 'spaceone-dev'
+    if: github.repository_owner == 'cloudforet-io'
     needs: [dispatch_create_workflow_svc_3]
     runs-on: ubuntu-latest
     steps:

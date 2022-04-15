@@ -99,7 +99,7 @@ jobs:
           git push && \git push -f origin "${{ env.VERSION }}"
 
   pypi:
-    if: github.repository_owner == 'spaceone-dev'
+    if: github.repository_owner == 'cloudforet-io'
     needs: [condition_check, update_local_version_file]
     runs-on: ubuntu-latest
     env:
@@ -132,38 +132,8 @@ jobs:
           cd dist/python
           twine upload dist/*.whl --username ${{ secrets.PYPI_USERNAME }} --password ${{ secrets.PYPI_PASSWORD }} --verbose
 
-  # docker:
-  #   needs: [condition_check, update_local_version_file, pypi]
-  #   if: github.repository_owner == 'spaceone-dev'
-  #   runs-on: ubuntu-latest
-  #   env:
-  #     VERSION: ${{ needs.condition_check.outputs.TAG }}
-  #     BRANCH: ${{ needs.condition_check.outputs.BRANCH }}
-  #   steps:
-  #     - uses: actions/checkout@v2
-  #       with:
-  #         ref: ${{ env.BRANCH }}
-  #     - name: versioning,determine repo
-  #       run: |
-  #         if [[ ${{ env.VERSION }} =~ v[0-9]\.[0-9]\.[0-9](.*)rc([0-9]|[1-9][0-9]) ]];
-  #           then echo "REPO=pyengine" >> $GITHUB_ENV
-  #           else echo "REPO=spaceone" >> $GITHUB_ENV
-  #         fi
-  #         echo "VERSION=$(echo ${{ env.VERSION }} | cut -c 2- | sed -e 's/-//g')" >> $GITHUB_ENV
-  #     - name: get service name
-  #       run: |
-  #         echo "SERVICE=$(echo ${{ github.repository }} | cut -d '/' -f2)" >> $GITHUB_ENV
-  #     - name: Upload docker, only version tag
-  #       uses: docker/build-push-action@v1
-  #       with:
-  #         path: .
-  #         repository: ${{ env.REPO }}/${{ env.SERVICE }}
-  #         username: ${{ secrets.DOCKER_USERNAME }}
-  #         password: ${{ secrets.DOCKER_PASSWORD }}
-  #         tags: ${{ env.VERSION }}
-
   notify_to_slack:
-    if: github.repository_owner == 'spaceone-dev'
+    if: github.repository_owner == 'cloudforet-io'
     needs: [condition_check, update_local_version_file, pypi]
     runs-on: ubuntu-latest
     steps:

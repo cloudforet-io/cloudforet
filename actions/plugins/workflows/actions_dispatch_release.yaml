@@ -119,7 +119,7 @@ jobs:
 
   docker:
     needs: tagging
-    if: github.repository_owner == 'spaceone-dev'
+    if: github.repository_owner == 'cloudforet-io'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -129,19 +129,19 @@ jobs:
       - name: get service name
         run: |
           echo "SERVICE=$(echo ${{ github.repository }} | cut -d '/' -f2)" >> $GITHUB_ENV
-      - name: Build and push to pyengine
+      - name: Build and push to cloudforetdev
         uses: docker/build-push-action@v1
         with:
           path: .
-          repository: pyengine/${{ env.SERVICE }}
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          repository: cloudforetdev/${{ env.SERVICE }}
+          username: ${{ secrets.DOCKER_DEV_USERNAME }}
+          password: ${{ secrets.DOCKER_DEV_PASSWORD }}
           tags: ${{ env.VERSION }}
-      - name: Build and push to spaceone
+      - name: Build and push to cloudforet
         uses: docker/build-push-action@v1
         with:
           path: .
-          repository: spaceone/${{ env.SERVICE }}
+          repository: cloudforet/${{ env.SERVICE }}
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
           tags: ${{ env.VERSION }}
@@ -154,7 +154,7 @@ jobs:
           author_name: Github Action Slack
 
   notification:
-    if: github.repository_owner == 'spaceone-dev'
+    if: github.repository_owner == 'cloudforet-io'
     needs: docker
     runs-on: ubuntu-latest
     steps:

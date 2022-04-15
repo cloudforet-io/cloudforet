@@ -36,7 +36,7 @@ jobs:
           fi
 
   pypi:
-    if: github.repository_owner == 'spaceone-dev'
+    if: github.repository_owner == 'cloudforet-io'
     needs: [condition_check]
     runs-on: ubuntu-latest
     env:
@@ -68,7 +68,7 @@ jobs:
           twine upload dist/*.whl --username ${{ secrets.PYPI_USERNAME }} --password ${{ secrets.PYPI_PASSWORD }} --verbose
 
   notify_to_slack:
-    if: github.repository_owner == 'spaceone-dev'
+    if: github.repository_owner == 'cloudforet-io'
     needs: [condition_check, pypi]
     runs-on: ubuntu-latest
     steps:

@@ -95,7 +95,7 @@ jobs:
           git push && \git push -f origin "${{ env.VERSION }}"
 
   pypi:
-    if: github.repository_owner == 'spaceone-dev' && needs.condition_check.outputs.NOT_FIRST_TAG == 'false'
+    if: github.repository_owner == 'cloudforet-io' && needs.condition_check.outputs.NOT_FIRST_TAG == 'false'
     needs: [condition_check, update_local_version_file]
     runs-on: ubuntu-latest
     env:
@@ -128,7 +128,7 @@ jobs:
 
   docker:
     needs: [condition_check, update_local_version_file]
-    if: github.repository_owner == 'spaceone-dev'
+    if: github.repository_owner == 'cloudforet-io'
     runs-on: ubuntu-latest
     env:
       VERSION: ${{ needs.condition_check.outputs.TAG }}
@@ -164,7 +164,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: spaceone/${{ env.SERVICE }}:${{ env.VERSION }}
+          tags: cloudforet/${{ env.SERVICE }}:${{ env.VERSION }}
       - 
         name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -184,7 +184,7 @@ jobs:
           tags: ${{ secrets.ECR_REPO }}/${{ env.SERVICE }}:${{ env.VERSION }}
 
   notify_to_slack:
-    if: github.repository_owner == 'spaceone-dev'
+    if: github.repository_owner == 'cloudforet-io'
     needs: [condition_check, update_local_version_file, pypi, docker]
     runs-on: ubuntu-latest
     steps:

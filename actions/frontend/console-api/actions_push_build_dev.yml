@@ -6,7 +6,7 @@ on:
 
 
 env:
-  ORGANIZATION: pyengine
+  ORGANIZATION: cloudforetdev
 
 
 jobs:
@@ -26,7 +26,7 @@ jobs:
           echo "::set-output name=VERSION::$(cat src/VERSION | cut -c 2-).${{ env.TIME }}"
 
   docker:
-    if: github.repository_owner == 'spaceone-dev'
+    if: github.repository_owner == 'cloudforet-io'
     needs: versioning
     runs-on: ubuntu-latest
     env:
@@ -41,8 +41,8 @@ jobs:
         with:
           path: .
           repository: ${{ env.ORGANIZATION }}/${{ env.SERVICE }}
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          username: ${{ secrets.DOCKER_DEV_USERNAME }}
+          password: ${{ secrets.DOCKER_DEV_PASSWORD }}
           tags: latest,${{ env.VERSION }}
         
       - name: Slack

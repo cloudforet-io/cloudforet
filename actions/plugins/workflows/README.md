@@ -23,12 +23,12 @@
             - (triggered by `[Push] Sync CI`)
         - When the workflow is manually triggered
     - CONTENT
-        - Build code and push docker image to pyengine
+        - Build code and push docker image to cloudforetdev
 - `[Dispatch] Release`
     - EVENT
         - When the workflow is manually triggered
     - CONTENT
-        - Build code and push docker image to pyengine and spaceone
+        - Build code and push docker image to cloudforetdev and cloudforet
 - `[Push] Sync CI`
     - EVENT
         - When code is pushed to master

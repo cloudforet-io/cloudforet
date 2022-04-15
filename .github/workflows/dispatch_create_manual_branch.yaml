@@ -32,7 +32,7 @@ jobs:
         uses: peter-evans/repository-dispatch@v1
         with:
           token: ${{ secrets.PAT_TOKEN }}
-          repository: spaceone-dev/${{ github.event.inputs.target }}
+          repository: cloudforet-io/${{ github.event.inputs.target }}
           event-type: create_release_branch
           client-payload: '{"version": "${{ env.TAG }}"}' 
   
@@ -42,7 +42,7 @@ jobs:
 # pypi만 : api, python-core
 
   notify_to_slack:
-    if: github.repository_owner == 'spaceone-dev'
+    if: github.repository_owner == 'cloudforet-io'
     needs: [dispatch_create_workflow_svc_1]
     runs-on: ubuntu-latest
     steps:

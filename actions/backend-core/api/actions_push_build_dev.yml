@@ -7,7 +7,7 @@ on:
 
 jobs:
   buff:
-    if: github.repository_owner == 'spaceone-dev'
+    if: github.repository_owner == 'cloudforet-io'
     runs-on: ubuntu-latest
     env:
       SERVICE: api

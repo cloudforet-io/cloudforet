@@ -5,7 +5,7 @@ on:
     types: [master_push]
 
 env:
-  ORGANIZATION: pyengine
+  ORGANIZATION: cloudforetdev
 
 
 jobs:
@@ -27,7 +27,7 @@ jobs:
           echo "::set-output name=VERSION::$(cat src/VERSION | cut -c 2-).${{ env.TIME }}"
 
   docker:
-    if: github.repository_owner == 'spaceone-dev'
+    if: github.repository_owner == 'cloudforet-io'
     needs: versioning
     runs-on: ubuntu-latest
     env:
@@ -46,8 +46,8 @@ jobs:
         name: Login to DockerHub
         uses: docker/login-action@v1 
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          username: ${{ secrets.DOCKER_DEV_USERNAME }}
+          password: ${{ secrets.DOCKER_DEV_PASSWORD }}
       - 
         name: get service name
         run: |
@@ -58,8 +58,8 @@ jobs:
         with:
           context: .
           push: true
-          tags: pyengine/${{ env.SERVICE }}:latest, pyengine/${{ env.SERVICE }}:${{ env.VERSION }}
-          cache-from: pyengine/${{ env.SERVICE }}:latest
+          tags: ${{ env.ORGANIZATION }}/${{ env.SERVICE }}:latest, ${{ env.ORGANIZATION }}/${{ env.SERVICE }}:${{ env.VERSION }}
+          cache-from: ${{ env.ORGANIZATION }}/${{ env.SERVICE }}:latest
           cache-to: type=inline
         
 

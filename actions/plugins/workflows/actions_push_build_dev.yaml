@@ -32,7 +32,7 @@ jobs:
           author_name: Github Action Slack
 
   docker:
-      if: github.repository_owner == 'spaceone-dev'
+      if: github.repository_owner == 'cloudforet-io'
       needs: versioning
       runs-on: ubuntu-latest
       env:
@@ -46,9 +46,9 @@ jobs:
           uses: docker/build-push-action@v1
           with:
             path: .
-            repository: pyengine/${{ env.SERVICE }}
-            username: ${{ secrets.DOCKER_USERNAME }}
-            password: ${{ secrets.DOCKER_PASSWORD }}
+            repository: cloudforetdev/${{ env.SERVICE }}
+            username: ${{ secrets.DOCKER_DEV_USERNAME }}
+            password: ${{ secrets.DOCKER_DEV_PASSWORD }}
             tags: ${{ env.VERSION }}
         - name: Notice when job fails
           if: failure()
