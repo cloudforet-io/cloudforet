@@ -13,3 +13,4 @@ venv
 local-conf.yml
 test/reports
 test/_trial_temp
+.python-version
