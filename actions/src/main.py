@@ -31,7 +31,7 @@ def deploy_to_repository(github, repo_name, init) -> None:
         group = _get_group(repo)
         workflows = _get_workflows(group)
 
-    github._deploy(repo, workflows, init)
+    # github._deploy(repo, workflows, init)
 
 def deploy_to_group(github, group, init) -> None:
     '''
@@ -49,7 +49,7 @@ def deploy_to_group(github, group, init) -> None:
         else:
             workflows = _get_workflows(group)
 
-        github._deploy(repo, workflows, init)
+        # github._deploy(repo, workflows, init)
 
 def _get_workflows(group) -> list:
     try:
