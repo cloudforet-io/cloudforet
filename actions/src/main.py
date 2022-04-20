@@ -43,8 +43,7 @@ def deploy_to_repository(github, repo_name, init) -> None:
         repo_name_formatted = _format_repo_name(ORG_NAME, repo_name)
         workflows = _get_workflows(group, repo_name_formatted)
 
-    print(f'Repo name = {repo_name}, Workflows are {workflows}')
-    # github._deploy(repo, workflows, init)
+    github._deploy(repo, workflows, init)
 
 
 def deploy_to_group(github, group, init) -> None:
