@@ -6,6 +6,7 @@ logging.basicConfig(level=logging.INFO)
 ARGS = ap.parse_args()
 ORG_NAME = "cloudforet-io"
 
+
 def main():
     github = GithubConnector(ORG_NAME)
     init = ARGS.init
@@ -20,13 +21,6 @@ def main():
         sys.exit(1)
 
 
-def _format_repo_name(org_name: str, repo_name_full: str) -> str:
-    '''
-    Format repo name by deleting '{github organization name}/'
-    '''
-    return repo_name_full[len(org_name) + 1:]
-
-
 def deploy_to_repository(github, repo_name, init) -> None:
     '''
     Deploy workflows to single repository
@@ -36,10 +30,8 @@ def deploy_to_repository(github, repo_name, init) -> None:
     group = _get_group(repo)
 
     if init:
-        workflows = _get_workflows('common', "no_repo_exists_with_this_name")
+        workflows = _get_workflows('common')
     else:
-        # group = _get_group(repo)
-        # workflows = _get_workflows(group)
         repo_name_formatted = _format_repo_name(ORG_NAME, repo_name)
         workflows = _get_workflows(group, repo_name_formatted)
 
@@ -55,18 +47,20 @@ def deploy_to_group(github, group, init) -> None:
     repo_names = _filter_match_repository_topics_to_group(group, all_repositories)
 
     for repo_name in  repo_names:
-        # repo = github._get_repo(repo_name)
-        #
-        # if init:
-        #     workflows = _get_workflows('common')
-        # else:
-        #     workflows = _get_workflows(group)
-        #
-        # github._deploy(repo, workflows, init)
         deploy_to_repository(github, repo_name, init)
 
 
-def _get_workflow_path(group, repo_name) -> str:
+def _format_repo_name(org_name: str, repo_name_full: str) -> str:
+    '''
+    Format repo name by deleting '{github organization name}/'
+    '''
+    return repo_name_full[len(org_name) + 1:]
+
+
+def _get_workflow_path(group, repo_name: str) -> str:
+    '''
+    Provide workflow path in group-level or repo-level
+    '''
     workflow_group_level_path = f'./{group}/workflows'
     workflow_repo_level_path = workflow_group_level_path + f'/{repo_name}'
 
@@ -82,7 +76,12 @@ def _get_workflow_path(group, repo_name) -> str:
         raise e
 
 
-def _get_workflows(group, repo_name: str) -> list:
+def _get_workflows(group, repo_name ="None") -> list:
+    '''
+    Provide Workflow List (path & file contents).
+    repo_name default value is "None" for init flag,
+    which indicates sync-only option delivering sync_ci file only
+    '''
 
     try:
         workflow_path = _get_workflow_path(group, repo_name)
@@ -103,7 +102,9 @@ def _get_workflows(group, repo_name: str) -> list:
 
 
 def _read_workflow(workflow_path, workflow_name) -> dict:
-
+    '''
+    read workflow file contents by path
+    '''
     with open(f'{workflow_path}/{workflow_name}','r') as f:
         body = f.read()
 
