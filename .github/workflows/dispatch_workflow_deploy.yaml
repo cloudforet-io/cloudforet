@@ -24,7 +24,7 @@ jobs:
         with:
           python-version: '3.8'
       - name: install requirements
-        run: pip install -r requirements.txt
+        run: pip install -r actions/requirements.txt
       - name: set PAT_TOKEN env
         run: echo "PAT_TOKEN=$(echo ${{ secrets.PAT_TOKEN }})" >> $GITHUB_ENV
       - name: deploy
