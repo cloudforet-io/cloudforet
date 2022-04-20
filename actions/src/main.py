@@ -4,9 +4,11 @@ from connector.github_connector import GithubConnector
 import logging, os, sys
 logging.basicConfig(level=logging.INFO)
 ARGS = ap.parse_args()
+ORG_NAME = "cloudforet-io"
+
 
 def main():
-    github = GithubConnector()
+    github = GithubConnector(ORG_NAME)
     init = ARGS.init
 
     if ARGS.repo:
@@ -18,20 +20,23 @@ def main():
     else:
         sys.exit(1)
 
+
 def deploy_to_repository(github, repo_name, init) -> None:
     '''
     Deploy workflows to single repository
     '''
 
     repo = github._get_repo(repo_name)
+    group = _get_group(repo)
 
     if init:
         workflows = _get_workflows('common')
     else:
-        group = _get_group(repo)
-        workflows = _get_workflows(group)
+        repo_name_formatted = _format_repo_name(ORG_NAME, repo_name)
+        workflows = _get_workflows(group, repo_name_formatted)
 
     github._deploy(repo, workflows, init)
+
 
 def deploy_to_group(github, group, init) -> None:
     '''
@@ -42,18 +47,44 @@ def deploy_to_group(github, group, init) -> None:
     repo_names = _filter_match_repository_topics_to_group(group, all_repositories)
 
     for repo_name in  repo_names:
-        repo = github._get_repo(repo_name)
+        deploy_to_repository(github, repo_name, init)
 
-        if init:
-            workflows = _get_workflows('common')
-        else:
-            workflows = _get_workflows(group)
 
-        github._deploy(repo, workflows, init)
+def _format_repo_name(org_name: str, repo_name_full: str) -> str:
+    '''
+    Format repo name by deleting '{github organization name}/'
+    '''
+    return repo_name_full[len(org_name) + 1:]
 
-def _get_workflows(group) -> list:
+
+def _get_workflow_path(group, repo_name: str) -> str:
+    '''
+    Provide workflow path in group-level or repo-level
+    '''
+    workflow_group_level_path = f'./{group}/workflows'
+    workflow_repo_level_path = workflow_group_level_path + f'/{repo_name}'
+
     try:
-        workflow_path = f'./{group}/workflows'
+        if os.path.isdir(workflow_repo_level_path):
+            return workflow_repo_level_path
+        else:
+            return workflow_group_level_path
+    except FileNotFoundError as e:
+        logging.error(e)
+        sys.exit(1)
+    except Exception as e:
+        raise e
+
+
+def _get_workflows(group, repo_name ="None") -> list:
+    '''
+    Provide Workflow List (path & file contents).
+    repo_name default value is "None" for init flag,
+    which indicates sync-only option delivering sync_ci file only
+    '''
+
+    try:
+        workflow_path = _get_workflow_path(group, repo_name)
         workflow_list = os.listdir(workflow_path)
     except FileNotFoundError as e:
         logging.error(e)
@@ -62,25 +93,28 @@ def _get_workflows(group) -> list:
         raise e
 
     workflows = []
-    ignore_files = ['.gitkeep']
     for workflow_name in workflow_list:
-        if workflow_name in ignore_files:
-            continue
+
         workflow = _read_workflow(workflow_path, workflow_name)
         workflows.append(workflow)
 
     return workflows
 
+
 def _read_workflow(workflow_path, workflow_name) -> dict:
+    '''
+    read workflow file contents by path
+    '''
     with open(f'{workflow_path}/{workflow_name}','r') as f:
         body = f.read()
 
     path = f'.github/workflows/{workflow_name}'
 
-    workflow_meta = {}    
+    workflow_meta = {}
     workflow_meta[path] = body
 
     return workflow_meta
+
 
 def _filter_match_repository_topics_to_group(group, repositories) -> list:
     '''
@@ -98,6 +132,7 @@ def _filter_match_repository_topics_to_group(group, repositories) -> list:
 
     return result
 
+
 def _get_group(repo) -> str:
     '''
     Return group name which repository topic matches the directory.
@@ -108,6 +143,7 @@ def _get_group(repo) -> str:
 
     # group list from current working dir
     group_list = os.listdir('./')
+
     for group in group_list:
         if os.path.isdir(group):
             groups.append(group)
@@ -118,6 +154,7 @@ def _get_group(repo) -> str:
 
     logging.error('There are no matching topics in the workflow group!')
     sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

@@ -6,8 +6,10 @@ logging.basicConfig(level=logging.INFO)
 
 class GithubConnector():
 
-  def __init__(self):
+  def __init__(self, org_name: str):
     self.client = self._get_client()
+    self.org_name = org_name
+
 
   def _get_client(self) -> object:
       token = os.getenv('PAT_TOKEN',None)
@@ -21,6 +23,7 @@ class GithubConnector():
       except Exception as e:
           raise e
 
+
   def _get_repo(self, repo_name) -> object:
       try:
           return self.client.get_repo(repo_name)
@@ -30,21 +33,23 @@ class GithubConnector():
       except Exception as e:
           raise e
 
+
   def _get_all_repositories(self) -> list:
       '''
       get all repositories from github using github api
       '''
 
-      url = 'https://api.github.com/search/repositories?q=org:spaceone-dev'
+      url = f'https://api.github.com/search/repositories?q=org:{self.org_name}'
       org_info = self._http_requests(url)
       total_page = math.ceil(org_info['total_count']/100)
 
       repositories = []
       for page in range(1, total_page+1):
-          url = f'https://api.github.com/orgs/spaceone-dev/repos?simple=yes&per_page=100&page={page}'
+          url = f'https://api.github.com/orgs/{self.org_name}/repos?simple=yes&per_page=100&page={page}'
           repositories += self._http_requests(url)
 
       return repositories
+
 
   def _delete_all_workflows_in_repository(self, repo) -> None:
       try:
@@ -54,6 +59,7 @@ class GithubConnector():
               repo.delete_file(path=content.path, message=message, sha=content.sha, branch="master")
       except UnknownObjectException as e:
           logging.warning(e)
+
 
   def _create_new_file_in_repository(self, repo, workflows) -> None:
       try:
@@ -65,6 +71,7 @@ class GithubConnector():
           logging.error(f'failed to file creation : {e}')
       except Exception as e:
           raise e
+
 
   def _update_file_in_repository(self, repo, workflows) -> None:
       try:
@@ -80,12 +87,14 @@ class GithubConnector():
       except Exception as e:
           raise e
 
+
   def _deploy(self, repo, workflows, init) -> None:
       if init:
           self._delete_all_workflows_in_repository(repo)
           self._create_new_file_in_repository(repo, workflows)
       else:
           self._update_file_in_repository(repo, workflows)
+
 
   def _http_requests(self, url) -> list:
       headers = {
