@@ -61,7 +61,7 @@ def _get_workflow_path(group, repo_name: str) -> str:
     '''
     Provide workflow path in group-level or repo-level
     '''
-    workflow_group_level_path = f'./{group}/workflows'
+    workflow_group_level_path = f'./actions/{group}/workflows'
     workflow_repo_level_path = workflow_group_level_path + f'/{repo_name}'
 
     try:
@@ -142,10 +142,10 @@ def _get_group(repo) -> str:
     groups = []
 
     # group list from current working dir
-    group_list = os.listdir('./')
+    group_list = os.listdir('./actions/')
 
     for group in group_list:
-        if os.path.isdir(group):
+        if os.path.isdir(f'actions/{group}'):
             groups.append(group)
 
     for topic in topics:
