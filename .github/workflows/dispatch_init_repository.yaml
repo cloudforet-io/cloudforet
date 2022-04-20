@@ -23,4 +23,4 @@ jobs:
         run: echo "PAT_TOKEN=$(echo ${{ secrets.PAT_TOKEN }})" >> $GITHUB_ENV
       - name: init deploy
         run: |
-          python src/main.py --repo ${{ github.event.inputs.repo }} --init
+          python actions/src/main.py --repo ${{ github.event.inputs.repo }} --init
