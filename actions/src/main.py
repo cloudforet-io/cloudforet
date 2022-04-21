@@ -32,7 +32,7 @@ def deploy_to_repository(github, repo_name, init) -> None:
     if init:
         workflows = _get_workflows('common')
     else:
-        repo_name_formatted = _format_repo_name(ORG_NAME, repo_name)
+        repo_name_formatted = _format_repo_name(repo_name)
         workflows = _get_workflows(group, repo_name_formatted)
 
     github._deploy(repo, workflows, init)
@@ -50,11 +50,11 @@ def deploy_to_group(github, group, init) -> None:
         deploy_to_repository(github, repo_name, init)
 
 
-def _format_repo_name(org_name: str, repo_name_full: str) -> str:
+def _format_repo_name(repo_name_full: str) -> str:
     '''
     Format repo name by deleting '{github organization name}/'
     '''
-    return repo_name_full[len(org_name) + 1:]
+    return repo_name_full.split("/")[1]
 
 
 def _get_workflow_path(group, repo_name: str) -> str:
