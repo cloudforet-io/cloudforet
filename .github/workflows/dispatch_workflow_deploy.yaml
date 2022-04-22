@@ -38,14 +38,14 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Repository Dispatch
-        if: ${{ github.event.inputs.type }} == "branch"
+        if: ${{ github.event.inputs.type == "branch" }} 
         uses: peter-evans/repository-dispatch@v1
         with:
           token: ${{ secrets.PAT_TOKEN }}
           repository: ${{ github.event.inputs.repository }}
           event-type: master_push
       - name: Repository Dispatch
-        if: ${{ github.event.inputs.type }} == "tag"
+        if: ${{ github.event.inputs.type == "tag" }}
         uses: peter-evans/repository-dispatch@v1
         with:
           token: ${{ secrets.PAT_TOKEN }}
