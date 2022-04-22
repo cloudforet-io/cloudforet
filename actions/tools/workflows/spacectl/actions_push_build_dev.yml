@@ -10,5 +10,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: sync
-        runs:
+        run:
           echo "Workflow file is updated."
