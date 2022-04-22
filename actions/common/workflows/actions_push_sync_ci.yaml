@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: git pull - from branch
-        if: ${{ github.event.ref =~ 'branch' }}
+        if: $startsWith(github.ref, 'refs/heads')
         uses: convictional/trigger-workflow-and-wait@v1.3.0
         with:
           owner: ${{ env.owner }}
@@ -37,7 +37,7 @@ jobs:
           trigger_workflow: true
           wait_workflow: true
       - name: git pull - from tag
-        if: ${{ github.event.ref =~ 'tag' }}
+        if: startsWith(github.ref, 'refs/tags')
         uses: convictional/trigger-workflow-and-wait@v1.3.0
         with:
           owner: ${{ env.owner }}
