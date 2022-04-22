@@ -40,11 +40,14 @@ jobs:
     runs-on: ubuntu-latest
     env:
       VERSION: ${{ needs.condition_check.outputs.TAG }}
+      BRANCH: ${{ needs.condition_check.outputs.BRANCH }}
     steps:
       - uses: actions/checkout@v2
+        with:
+          ref: ${{ env.BRANCH }}
       - name: set version
         run: |
-          echo ${{ env.VERSION }} | cut -c 2- | sed -e 's/-//g' > VERSION
+          echo ${{ env.VERSION }} | cut -c 2- | sed -e 's/-//g' > src/VERSION
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
@@ -55,14 +58,12 @@ jobs:
             pip install setuptools wheel twine
       - name: Build
         run: |
-          make all
-          sudo chmod -R 777 dist
-          cd dist/python
+          cd src
           python setup.py sdist bdist_wheel
       - name: Upload Pypi
         id: upload
         run: |
-          cd dist/python
+          cd src
           twine upload dist/*.whl --username ${{ secrets.PYPI_USERNAME }} --password ${{ secrets.PYPI_PASSWORD }} --verbose
 
   notify_to_slack:

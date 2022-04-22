@@ -46,11 +46,10 @@ jobs:
       - name: totally same version, redeploy dockerhub
         id: job1
         run: |
-          if [ "$(cat VERSION)" == "${{ env.TAG }}" ]
+          if [ "$(cat src/VERSION)" == "${{ env.TAG }}" ]
             then echo "::set-output name=not_first_tag::true"
             else echo "::set-output name=not_first_tag::false"
           fi
-
   update_master_branch_version_file:
     needs: condition_check
     runs-on: ubuntu-latest
@@ -75,31 +74,26 @@ jobs:
       - uses: actions/checkout@v2
         with:
           ref: ${{ env.BRANCH }}
+      - name: git config
+        if: needs.condition_check.outputs.NOT_FIRST_TAG == 'false'
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          echo ${{ env.VERSION }} > src/VERSION
+          git add .
+          git commit -m "[CI/CD] release version ${{ env.VERSION }}"
       - name: task
         if: needs.condition_check.outputs.NOT_FIRST_TAG == 'false' && (github.event_name == 'workflow_dispatch' || github.event_name == 'repository_dispatch')
         run: |
-          git config user.email github-actions@github.com
-          git config user.name github-actions
-          git pull
-          echo ${{ env.VERSION }} > VERSION
-          git add .
-          git commit -m "[CI/CD] release version ${{ env.VERSION }}"
           git tag ${{ env.VERSION }} 
           git push --atomic origin ${{ env.BRANCH }} ${{ env.VERSION }}
       - name: task
         if: needs.condition_check.outputs.NOT_FIRST_TAG == 'false' && (github.event_name == 'push')
         run: |
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-          git pull
-          echo ${{ env.VERSION }} > VERSION
-          git add .
-          git commit -m "[CI/CD] release version ${{ env.VERSION }}"
           \git tag -f ${{ env.VERSION }} 
           git push && \git push -f origin "${{ env.VERSION }}"
-
   pypi:
-    if: github.repository_owner == 'cloudforet-io'
+    if: github.repository_owner == 'cloudforet-io' && needs.condition_check.outputs.NOT_FIRST_TAG == 'false'
     needs: [condition_check, update_local_version_file]
     runs-on: ubuntu-latest
     env:
@@ -111,7 +105,7 @@ jobs:
           ref: ${{ env.BRANCH }}
       - name: set version
         run: |
-          echo ${{ env.VERSION }} | cut -c 2- | sed -e 's/-//g' > VERSION
+          echo ${{ env.VERSION }} | cut -c 2- | sed -e 's/-//g' > src/VERSION
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
@@ -122,14 +116,12 @@ jobs:
             pip install setuptools wheel twine
       - name: Build
         run: |
-          make all
-          sudo chmod -R 777 dist
-          cd dist/python
+          cd src
           python setup.py sdist bdist_wheel
       - name: Upload Pypi
         id: upload
         run: |
-          cd dist/python
+          cd src
           twine upload dist/*.whl --username ${{ secrets.PYPI_USERNAME }} --password ${{ secrets.PYPI_PASSWORD }} --verbose
 
   notify_to_slack:
