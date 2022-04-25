@@ -146,7 +146,7 @@ jobs:
           echo "VERSION=$(echo ${{ env.VERSION }} | cut -c 2- | sed -e 's/-//g')" >> $GITHUB_ENV
       - name: get service name
         run: |
-          echo "SERVICE=$(echo ${{ github.repository }} | cut -c 14-)" >> $GITHUB_ENV
+          echo "SERVICE=$(echo ${{ github.repository }} | cut -d '/' -f2)" >> $GITHUB_ENV
       - name: Upload docker, only version tag
         uses: docker/build-push-action@v1
         with:
