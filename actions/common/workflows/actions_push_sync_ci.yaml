@@ -17,6 +17,7 @@ env:
   owner: cloudforet-io
   repo: cloudforet
   ref: master
+  SLACK_WEBHOOK_URL: ${{secrets.SLACK_WEBHOOK_URL}}
 
 jobs:
   master_push:
@@ -49,6 +50,13 @@ jobs:
           inputs: '{"repository" : "${{ github.repository }} , "type" : "tag"}'
           trigger_workflow: true
           wait_workflow: true
+      - name: Job Failure Notification
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          fields: repo,workflow,eventName,job
+          author_name: Github Action Slack
 
   pull_workflows:
     if: ${{ github.event_name == 'workflow_dispatch' }}
@@ -66,3 +74,10 @@ jobs:
           inputs: '{"repository" : "${{ github.repository }}" , "sync_only" : "true"}'
           trigger_workflow: true
           wait_workflow: true
+      - name: Job Failure Notification
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          fields: repo,workflow,eventName,job
+          author_name: Github Action Slack

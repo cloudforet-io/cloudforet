@@ -1,18 +1,13 @@
 name: "[Dispatch] Release"
 
 on:
-  # workflow_dispatch:
-  #   inputs:
-  #     tag:
-  #       description: ' `x.y` 형태로 버전을 입력해주세요. v접두사와 -rc0 접미사는 자동으로 첨가됩니다.'
-  #       required: true
-  #       default: 1.2
   repository_dispatch:
     types: [create_release_branch]
 
 env:
   VERSION: v${{ github.event.inputs.tag }}-rc0
   BRANCH: release-${{ github.event.inputs.tag }}
+  SLACK_WEBHOOK_URL: ${{secrets.SLACK_WEBHOOK_URL}}
 
 jobs:
   create_branch:
@@ -30,3 +25,16 @@ jobs:
           git push --atomic origin master ${{ env.VERSION }}
           git checkout -b ${{ env.BRANCH }}
           git push --set-upstream origin ${{ env.BRANCH }}
+
+  notify_to_slack:
+    if: github.repository_owner == 'cloudforet-io'
+    needs: [create_branch]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Slack
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
+          author_name: Github Action Slack

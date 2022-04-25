@@ -28,12 +28,12 @@ jobs:
           echo "major=$(echo ${{env.TAG}} | cut -c 2- | cut -d'.' -f1)"
           echo "minor=$(echo ${{env.TAG}} | cut -c 2- | cut -d'.' -f2)"
           echo "patch=$(echo ${{env.TAG}} | cut -c 2- | cut -d'.' -f3)"
-      - name: notice when job fails
+      - name: Job Failure Notification
         if: failure()
-        uses: 8398a7/action-slack@v3.2.0
+        uses: 8398a7/action-slack@v3
         with:
-          status: ${{job.status}}
-          fields: repo,workflow,job
+          status: ${{ job.status }}
+          fields: repo,workflow,eventName,job
           author_name: Github Action Slack
 
   update_master_branch_version_file:
@@ -90,12 +90,12 @@ jobs:
         with:
           github_token: ${{ secrets.PAT_TOKEN }}
           branch: master
-      - name: notice when job fails
+      - name: Job Failure Notification
         if: failure()
-        uses: 8398a7/action-slack@v3.2.0
+        uses: 8398a7/action-slack@v3
         with:
-          status: ${{job.status}}
-          fields: repo,workflow,job
+          status: ${{ job.status }}
+          fields: repo,workflow,eventName,job
           author_name: Github Action Slack
 
   tagging:
@@ -109,12 +109,12 @@ jobs:
         run: |
           git tag ${{ env.TAG }}
           git push origin "${{ env.TAG }}"
-      - name: notice when job fails
+      - name: Job Failure Notification
         if: failure()
-        uses: 8398a7/action-slack@v3.2.0
+        uses: 8398a7/action-slack@v3
         with:
-          status: ${{job.status}}
-          fields: repo,workflow,job
+          status: ${{ job.status }}
+          fields: repo,workflow,eventName,job
           author_name: Github Action Slack
 
   docker:
@@ -145,23 +145,23 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
           tags: ${{ env.VERSION }}
-      - name: Notice when job fails
+      - name: Job Failure Notification
         if: failure()
-        uses: 8398a7/action-slack@v3.2.0
+        uses: 8398a7/action-slack@v3
         with:
-          status: ${{job.status}}
-          fields: repo,workflow,job
+          status: ${{ job.status }}
+          fields: repo,workflow,eventName,job
           author_name: Github Action Slack
 
-  notification:
+  notify_to_slack:
     if: github.repository_owner == 'cloudforet-io'
-    needs: docker
+    needs: [docker]
     runs-on: ubuntu-latest
     steps:
       - name: Slack
         if: always()
-        uses: 8398a7/action-slack@v3.2.0
+        uses: 8398a7/action-slack@v3
         with:
-          status: ${{job.status}}
+          status: ${{ job.status }}
           fields: repo,message,commit,author,action,ref,workflow,job
           author_name: Github Action Slack

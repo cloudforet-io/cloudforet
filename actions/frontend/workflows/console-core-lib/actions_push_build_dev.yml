@@ -4,6 +4,9 @@ on:
   repository_dispatch:
     types: [master_push]
 
+env:
+  SLACK_WEBHOOK_URL: ${{secrets.SLACK_WEBHOOK_URL}}
+
 jobs:
   release:
     name: Release
@@ -39,12 +42,16 @@ jobs:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: npm run semantic-release
+
+  notify_to_slack:
+    if: github.repository_owner == 'cloudforet-io'
+    needs: [release]
+    runs-on: ubuntu-latest
+    steps:
       - name: Slack
         if: always()
-        uses: 8398a7/action-slack@v3.2.0
+        uses: 8398a7/action-slack@v3
         with:
-          status: ${{job.status}}
+          status: ${{ job.status }}
           fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
           author_name: Github Action Slack
-        env:
-          SLACK_WEBHOOK_URL: ${{secrets.SLACK_WEBHOOK_URL}}

@@ -6,7 +6,7 @@ on:
 
 env:
   ORGANIZATION: cloudforetdev
-
+  SLACK_WEBHOOK_URL: ${{secrets.SLACK_WEBHOOK_URL}}
 
 jobs:
   versioning:
@@ -25,6 +25,13 @@ jobs:
         id: job1
         run: |
           echo "::set-output name=VERSION::$(cat src/VERSION | cut -c 2-).${{ env.TIME }}"
+      - name: Job Failure Notification
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          fields: repo,workflow,eventName,job
+          author_name: Github Action Slack
 
   docker:
     if: github.repository_owner == 'cloudforet-io'
@@ -61,14 +68,23 @@ jobs:
           tags: ${{ env.ORGANIZATION }}/${{ env.SERVICE }}:latest, ${{ env.ORGANIZATION }}/${{ env.SERVICE }}:${{ env.VERSION }}
           cache-from: ${{ env.ORGANIZATION }}/${{ env.SERVICE }}:latest
           cache-to: type=inline
-        
+      - name: Job Failure Notification
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          fields: repo,workflow,eventName,job
+          author_name: Github Action Slack
 
+  notify_to_slack:
+    if: github.repository_owner == 'cloudforet-io'
+    needs: [versioning, docker]
+    runs-on: ubuntu-latest
+    steps:
       - name: Slack
         if: always()
-        uses: 8398a7/action-slack@v3.2.0
+        uses: 8398a7/action-slack@v3
         with:
-          status: ${{job.status}}
+          status: ${{ job.status }}
           fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
           author_name: Github Action Slack
-        env:
-          SLACK_WEBHOOK_URL: ${{secrets.SLACK_WEBHOOK_URL}}

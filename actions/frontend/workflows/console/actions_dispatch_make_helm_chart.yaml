@@ -5,6 +5,9 @@ on:
   repository_dispatch:
     types: [make_helm_chart]
 
+env:
+  SLACK_WEBHOOK_URL: ${{secrets.SLACK_WEBHOOK_URL}}
+
 jobs:
   helm:
     if: github.repository_owner == 'cloudforet-io'
@@ -64,10 +67,8 @@ jobs:
     steps:
       - name: Slack
         if: always()
-        uses: 8398a7/action-slack@v3.2.0
+        uses: 8398a7/action-slack@v3
         with:
-          status: ${{job.status}}
+          status: ${{ job.status }}
           fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
           author_name: Github Action Slack
-        env:
-          SLACK_WEBHOOK_URL: ${{secrets.SLACK_WEBHOOK_URL}}

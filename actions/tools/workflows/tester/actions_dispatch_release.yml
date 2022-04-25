@@ -7,6 +7,7 @@ on:
 env:
   VERSION: v${{ github.event.client_payload.version }}-rc1
   BRANCH: release-${{ github.event.client_payload.version }}
+  SLACK_WEBHOOK_URL: ${{secrets.SLACK_WEBHOOK_URL}}
 
 jobs:
   create_branch:
@@ -23,3 +24,16 @@ jobs:
           token: ${{ secrets.PAT_TOKEN }}
           event-type: branch_tagging
           client-payload: '{"version": "${{ env.VERSION }}"}'
+
+  notify_to_slack:
+    if: github.repository_owner == 'cloudforet-io'
+    needs: [create_branch]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Slack
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
+          author_name: Github Action Slack

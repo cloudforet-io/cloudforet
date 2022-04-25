@@ -10,8 +10,10 @@ on:
   repository_dispatch:
     types: [branch_tagging]
 
+env:
+  SLACK_WEBHOOK_URL: ${{secrets.SLACK_WEBHOOK_URL}}
+
 jobs:
-  
   condition_check:
     runs-on: ubuntu-latest
     outputs:
@@ -50,6 +52,13 @@ jobs:
             then echo "::set-output name=not_first_tag::true"
             else echo "::set-output name=not_first_tag::false"
           fi
+      - name: Job Failure Notification
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          fields: repo,workflow,eventName,job
+          author_name: Github Action Slack
 
   update_master_branch_version_file:
     needs: condition_check
@@ -64,6 +73,13 @@ jobs:
           token: ${{ secrets.PAT_TOKEN }}
           event-type: update_master_version
           client-payload: '{"version": "${{ env.TAG }}"}'
+      - name: Job Failure Notification
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          fields: repo,workflow,eventName,job
+          author_name: Github Action Slack
 
   update_local_version_file:
     needs: condition_check
@@ -105,47 +121,13 @@ jobs:
           git commit -m "[CI/CD] release version ${{ env.VERSION }}"
           \git tag -f ${{ env.VERSION }} 
           git push && \git push -f origin "${{ env.VERSION }}"
-
-  # pypi:
-  #   if: github.repository_owner == 'cloudforet-io'
-  #   needs: [condition_check, update_local_version_file]
-  #   runs-on: ubuntu-latest
-  #   env:
-  #     VERSION: ${{ needs.condition_check.outputs.TAG }}
-  #     BRANCH: ${{ needs.condition_check.outputs.BRANCH }}
-  #   steps:
-  #     - uses: actions/checkout@v2
-  #       with:
-  #         ref: ${{ env.BRANCH }}
-  #     - name: set version
-  #       run: |
-  #         echo ${{ env.VERSION }} | cut -c 2- > src/VERSION
-  #     - name: Set up Python
-  #       uses: actions/setup-python@v2
-  #       with:
-  #         python-version: '3.8'
-  #     - name: Install dependencies
-  #       run: |
-  #           python -m pip install --upgrade pip
-  #           pip install setuptools wheel twine
-  #     - name: Build
-  #       run: |
-  #         cd src
-  #         python setup.py sdist bdist_wheel
-  #     - name: Upload Pypi
-  #       id: upload
-  #       run: |
-  #         cd src
-  #         twine upload dist/*.whl --username ${{ secrets.PYPI_USERNAME }} --password ${{ secrets.PYPI_PASSWORD }} --verbose
-  #     - name: Slack
-  #       if: always()
-  #       uses: 8398a7/action-slack@v3.2.0
-  #       with:
-  #         status: ${{job.status}}
-  #         fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
-  #         author_name: Github Action Slack
-  #       env:
-  #         SLACK_WEBHOOK_URL: ${{secrets.SLACK_WEBHOOK_URL}}
+      - name: Job Failure Notification
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          fields: repo,workflow,eventName,job
+          author_name: Github Action Slack
 
   docker:
     needs: [condition_check, update_local_version_file]
@@ -205,6 +187,13 @@ jobs:
           context: .
           push: true
           tags: ${{ secrets.ECR_REPO }}/${{ env.SERVICE }}:latest, ${{ secrets.ECR_REPO }}/${{ env.SERVICE }}:${{ env.VERSION }} 
+      - name: Job Failure Notification
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          fields: repo,workflow,eventName,job
+          author_name: Github Action Slack
 
   notify_to_slack:
     if: github.repository_owner == 'cloudforet-io'
@@ -213,10 +202,9 @@ jobs:
     steps:
       - name: Slack
         if: always()
-        uses: 8398a7/action-slack@v3.2.0
+        uses: 8398a7/action-slack@v3
         with:
-          status: ${{job.status}}
+          status: ${{ job.status }}
           fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
           author_name: Github Action Slack
-        env:
-          SLACK_WEBHOOK_URL: ${{secrets.SLACK_WEBHOOK_URL}}
+

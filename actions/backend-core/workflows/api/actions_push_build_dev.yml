@@ -5,6 +5,9 @@ on:
   repository_dispatch:
     types: [master_push]
 
+env:
+  SLACK_WEBHOOK_URL: ${{secrets.SLACK_WEBHOOK_URL}}
+
 jobs:
   buff:
     if: github.repository_owner == 'cloudforet-io'
@@ -75,3 +78,16 @@ jobs:
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         force: true
+
+  notify_to_slack:
+    if: github.repository_owner == 'cloudforet-io'
+    needs: [buff]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Slack
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
+          author_name: Github Action Slack

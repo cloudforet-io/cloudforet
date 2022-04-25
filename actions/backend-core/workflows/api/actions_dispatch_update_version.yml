@@ -4,6 +4,9 @@ on:
   repository_dispatch:
     types: [update_master_version]
 
+env:
+  SLACK_WEBHOOK_URL: ${{secrets.SLACK_WEBHOOK_URL}}
+
 jobs:
   reflect_branch_update:
     env:
@@ -48,3 +51,10 @@ jobs:
           git add .
           git commit -m "[CI/CD] release version ${{ env.VERSION }}"
           git push
+      - name: Job Failure Notification
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          fields: repo,workflow,eventName,job
+          author_name: Github Action Slack

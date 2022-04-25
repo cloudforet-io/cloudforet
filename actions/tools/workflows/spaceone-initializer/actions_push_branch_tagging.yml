@@ -10,8 +10,10 @@ on:
   repository_dispatch:
     types: [branch_tagging]
 
+env:
+  SLACK_WEBHOOK_URL: ${{secrets.SLACK_WEBHOOK_URL}}
+
 jobs:
-  
   condition_check:
     runs-on: ubuntu-latest
     outputs:
@@ -65,6 +67,13 @@ jobs:
             then echo "::set-output name=not_first_tag::true"
             else echo "::set-output name=not_first_tag::false"
           fi
+      - name: Job Failure Notification
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          fields: repo,workflow,eventName,job
+          author_name: Github Action Slack
 
   update_master_branch_version_file:
     needs: condition_check
@@ -79,6 +88,13 @@ jobs:
           token: ${{ secrets.PAT_TOKEN }}
           event-type: update_master_version
           client-payload: '{"version": "${{ env.TAG }}"}'
+      - name: Job Failure Notification
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          fields: repo,workflow,eventName,job
+          author_name: Github Action Slack
 
   update_local_version_file:
     needs: condition_check
@@ -108,7 +124,14 @@ jobs:
         run: |
           \git tag -f ${{ env.VERSION }} 
           git push && \git push -f origin "${{ env.VERSION }}"
-          
+      - name: Job Failure Notification
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          fields: repo,workflow,eventName,job
+          author_name: Github Action Slack
+
   docker:
     needs: [condition_check, update_local_version_file]
     if: github.repository_owner == 'cloudforet-io'
@@ -162,6 +185,13 @@ jobs:
           context: .
           push: true
           tags: cloudforet/${{ env.SERVICE }}:${{ env.VERSION }}
+      - name: Job Failure Notification
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          fields: repo,workflow,eventName,job
+          author_name: Github Action Slack
 
   notify_to_slack:
     if: github.repository_owner == 'cloudforet-io'
@@ -170,9 +200,9 @@ jobs:
     steps:
       - name: Slack
         if: always()
-        uses: 8398a7/action-slack@v3.2.0
+        uses: 8398a7/action-slack@v3
         with:
-          status: ${{job.status}}
+          status: ${{ job.status }}
           fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
           author_name: Github Action Slack
         env:
