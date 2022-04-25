@@ -143,7 +143,7 @@ jobs:
           ref: ${{ env.BRANCH }}
       - name: versioning
         run: |
-          echo "VERSION=$(echo ${{ env.VERSION }} | cut -c 2- | sed -e 's/-//g')" >> $GITHUB_ENV
+          echo "VERSION=$(echo ${{ env.VERSION }} | cut -c 2-)" >> $GITHUB_ENV
       - name: get service name
         run: |
           echo "SERVICE=$(echo ${{ github.repository }} | cut -d '/' -f2)" >> $GITHUB_ENV
