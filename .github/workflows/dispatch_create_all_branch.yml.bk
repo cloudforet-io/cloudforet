@@ -1,4 +1,4 @@
-name: "[Dispatch] Create all release branch"
+name: "[BK] Create all release branch"
 on:
   workflow_dispatch:
     inputs:
@@ -71,7 +71,7 @@ jobs:
       fail-fast: false
       max-parallel: 4
       matrix:
-        target: ['identity']
+        target: ['identity', 'secret', 'repository', 'plugin', 'config', 'inventory', 'monitoring', 'statistics', 'billing', 'cost-analysis', 'notification', 'power-scheduler', 'cost-saving', 'spot-automation']
     needs: dispatch_create_workflow_svc_1
     runs-on: ubuntu-latest
     continue-on-error: true
@@ -102,7 +102,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: ['spacectl', 'tester', 'spaceone-initializer']
+        target: ['supervisor', 'spacectl', 'tester', 'spaceone-initializer']
     needs: dispatch_create_workflow_svc_2
     runs-on: ubuntu-latest
     continue-on-error: true

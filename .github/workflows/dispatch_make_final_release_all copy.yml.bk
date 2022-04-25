@@ -1,4 +1,4 @@
-name: "[Dispatch] Make final releases" # console-asset과 custom-report는 제외
+name: "[BK] Make final releases" # console-asset과 custom-report는 제외
 on:
   workflow_dispatch:
     inputs:
@@ -38,7 +38,7 @@ jobs:
       fail-fast: false
       max-parallel: 4
       matrix:
-        target: ['console', 'console-api', 'console-assets', 'marketplace-assets', 'identity', 'spacectl', 'tester', 'spaceone-initializer']
+        target: ['console', 'console-api', 'console-assets', 'marketplace-assets', 'identity', 'secret', 'repository', 'plugin', 'config', 'inventory', 'monitoring', 'statistics', 'billing', 'cost-analysis', 'notification', 'power-scheduler', 'cost-saving', 'spot-automation', 'supervisor', 'spacectl', 'tester', 'spaceone-initializer']
     needs: dispatch_make_final_release_base
     runs-on: ubuntu-latest
     continue-on-error: true
