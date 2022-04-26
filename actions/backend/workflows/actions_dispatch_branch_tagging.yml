@@ -1,4 +1,4 @@
-name: "[Push] Branch tagging"
+name: "[Dispatch] Branch tagging"
 
 on:
   workflow_dispatch:
