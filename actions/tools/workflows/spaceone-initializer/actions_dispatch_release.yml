@@ -25,6 +25,13 @@ jobs:
           git push --atomic origin master ${{ env.VERSION }}
           git checkout -b ${{ env.BRANCH }}
           git push --set-upstream origin ${{ env.BRANCH }}
+      - name: Job Failure Notification
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          fields: repo,workflow,eventName,job
+          author_name: Github Action Slack
 
   notify_to_slack:
     if: github.repository_owner == 'cloudforet-io'
