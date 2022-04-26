@@ -26,6 +26,13 @@ jobs:
           token: ${{ secrets.PAT_TOKEN }}
           event-type: branch_tagging
           client-payload: '{"version": "${{ env.VERSION }}"}'
+      - name: Job Failure Notification
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          fields: repo,workflow,eventName,job
+          author_name: Github Action Slack
 
   notify_to_slack:
     if: github.repository_owner == 'cloudforet-io'

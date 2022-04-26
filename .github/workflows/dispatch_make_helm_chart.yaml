@@ -2,6 +2,9 @@ name: "[Dispatch] Make helm chart"
 on:
   workflow_dispatch:
 
+env:
+  SLACK_WEBHOOK_URL: ${{secrets.SLACK_WEBHOOK_URL}}
+
 jobs:
   helm:
     if: github.repository_owner == 'cloudforet-io'
@@ -57,6 +60,13 @@ jobs:
           git pull
           git commit -m "Add ${SERVICE} chart"
           git push origin gh-pages
+      - name: Job Failure Notification
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          fields: repo,workflow,eventName,job
+          author_name: Github Action Slack
 
   notify_to_slack:
     if: github.repository_owner == 'cloudforet-io'
@@ -70,5 +80,4 @@ jobs:
           status: ${{ job.status }}
           fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
           author_name: Github Action Slack
-        env:
-          SLACK_WEBHOOK_URL: ${{secrets.SLACK_WEBHOOK_URL}}
+
