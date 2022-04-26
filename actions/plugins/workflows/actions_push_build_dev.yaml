@@ -32,24 +32,24 @@ jobs:
           author_name: Github Action Slack
 
   docker:
-      if: github.repository_owner == 'cloudforet-io'
-      needs: versioning
-      runs-on: ubuntu-latest
-      env:
-        VERSION: ${{ needs.versioning.outputs.version }}
-      steps:
-        - uses: actions/checkout@v2
-        - name: get service name
-          run: |
-            echo "SERVICE=$(echo ${{ github.repository }} | cut -d '/' -f2)" >> $GITHUB_ENV
-        - name: Upload docker
-          uses: docker/build-push-action@v1
-          with:
-            path: .
-            repository: cloudforetdev/${{ env.SERVICE }}
-            username: ${{ secrets.DOCKER_DEV_USERNAME }}
-            password: ${{ secrets.DOCKER_DEV_PASSWORD }}
-            tags: ${{ env.VERSION }}
+    if: github.repository_owner == 'cloudforet-io'
+    needs: versioning
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ needs.versioning.outputs.version }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: get service name
+        run: |
+          echo "SERVICE=$(echo ${{ github.repository }} | cut -d '/' -f2)" >> $GITHUB_ENV
+      - name: Upload docker
+        uses: docker/build-push-action@v1
+        with:
+          path: .
+          repository: cloudforetdev/${{ env.SERVICE }}
+          username: ${{ secrets.DOCKER_DEV_USERNAME }}
+          password: ${{ secrets.DOCKER_DEV_PASSWORD }}
+          tags: ${{ env.VERSION }}
       - name: Job Failure Notification
         if: failure()
         uses: 8398a7/action-slack@v3
