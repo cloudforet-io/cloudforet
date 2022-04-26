@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - master
-    tags:
-      - "v*.*"
     paths-ignore:
       - '.github/**'
       - 'deploy/helm/**'
@@ -20,12 +18,11 @@ env:
   SLACK_WEBHOOK_URL: ${{secrets.SLACK_WEBHOOK_URL}}
 
 jobs:
-  master_push:
+  sync_and_trigger:
     if: ${{ github.event_name == 'push' }}
     runs-on: ubuntu-latest
     steps:
-      - name: git pull - from branch
-        if: startsWith(github.ref, 'refs/heads')
+      - name: git pull
         uses: convictional/trigger-workflow-and-wait@v1.3.0
         with:
           owner: ${{ env.owner }}
@@ -34,20 +31,7 @@ jobs:
           workflow_file_name: ${{ env.workflow_file_name }}
           ref: ${{ env.ref }}
           wait_interval: 10
-          inputs: '{"repository" : "${{ github.repository }}" , "type" : "branch"}'
-          trigger_workflow: true
-          wait_workflow: true
-      - name: git pull - from tag
-        if: startsWith(github.ref, 'refs/tags')
-        uses: convictional/trigger-workflow-and-wait@v1.3.0
-        with:
-          owner: ${{ env.owner }}
-          repo: ${{ env.repo }}
-          github_token: ${{ secrets.PAT_TOKEN }}
-          workflow_file_name: ${{ env.workflow_file_name }}
-          ref: ${{ env.ref }}
-          wait_interval: 10
-          inputs: '{"repository" : "${{ github.repository }} , "type" : "tag"}'
+          inputs: '{"repository" : "${{ github.repository }}"}'
           trigger_workflow: true
           wait_workflow: true
       - name: Job Failure Notification
@@ -58,7 +42,7 @@ jobs:
           fields: repo,workflow,eventName,job
           author_name: Github Action Slack
 
-  pull_workflows:
+  sync_only:
     if: ${{ github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     steps:

@@ -9,10 +9,6 @@ on:
       sync_only:
         description: 'sync only flag'
         required: false
-      type:
-        description: 'trigger type'
-        required: false
-
 
 jobs:
   deploy:
@@ -37,18 +33,11 @@ jobs:
     needs: deploy
     steps:
       - uses: actions/checkout@v2
-      - name: Repository Dispatch
-        if: ${{ github.event.inputs.type == 'branch' }} 
+      - name: trigger build dev
         uses: peter-evans/repository-dispatch@v1
         with:
           token: ${{ secrets.PAT_TOKEN }}
           repository: ${{ github.event.inputs.repository }}
           event-type: master_push
-      - name: Repository Dispatch
-        if: ${{ github.event.inputs.type == 'tag' }}
-        uses: peter-evans/repository-dispatch@v1
-        with:
-          token: ${{ secrets.PAT_TOKEN }}
-          repository: ${{ github.event.inputs.repository }}
-          event-type: branch_tagging
+
 
