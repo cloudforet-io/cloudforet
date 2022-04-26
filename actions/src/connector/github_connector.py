@@ -13,7 +13,7 @@ class GithubConnector():
 
   def _get_client(self) -> object:
       token = os.getenv('PAT_TOKEN',None)
-
+      
       if not token:
           logging.error('PAT_TOKEN does not set')
           sys.exit(1)
@@ -60,40 +60,42 @@ class GithubConnector():
       except UnknownObjectException as e:
           logging.warning(e)
 
-
-  def _create_new_file_in_repository(self, repo, workflows) -> None:
+  def _create_new_workflow_in_repository(self, repo, workflow) -> None:
       try:
-          for workflow in workflows:
-              for path,content in workflow.items():
-                  ret = repo.create_file(path=path, message="[CI] Deploy CI", content=content, branch="master")
-                  logging.info(f'file has been created to {repo.full_name} : {ret}')
+          for path,content in workflow.items():
+              ret = repo.create_file(path=path, message="[CI] Deploy CI", content=content, branch="master")
+              logging.info(f'file has been created to {repo.full_name} : {ret}')
       except GithubException as e:
           logging.error(f'failed to file creation : {e}')
       except Exception as e:
           raise e
 
+  def _create_new_workflows_in_repository(self, repo, workflows) -> None:
+      for workflow in workflows:
+          self._create_new_workflow_in_repository(repo,workflow)
 
-  def _update_file_in_repository(self, repo, workflows) -> None:
+  def _update_workflow_in_repository(self, repo, workflow) -> None:
       try:
-          for workflow in workflows:
-              for path,content in workflow.items():
-                  contents = repo.get_contents(path,ref="master")
-                  ret = repo.update_file(path=contents.path,message="[CI] Update CI",content=content,sha=contents.sha,branch="master")
-                  logging.info(f'file has been updated in {repo.full_name} : {ret}')
+          for path,content in workflow.items():
+              contents = repo.get_contents(path,ref="master")
+              ret = repo.update_file(path=contents.path,message="[CI] Update CI",content=content,sha=contents.sha,branch="master")
+              logging.info(f'file has been updated in {repo.full_name} : {ret}')
       except UnknownObjectException as e:
           logging.warning(f'failed to update to {repo.full_name}: {e}')
-          logging.warning("The file may not exist, try to create a file.")
-          self._create_new_file_in_repository(repo, workflows)
+          self._create_new_workflow_in_repository(repo, workflow)
       except Exception as e:
           raise e
 
+  def _update_workflows_in_repository(self, repo, workflows) -> None:
+      for workflow in workflows:
+          self._update_workflow_in_repository(repo,workflow)
 
   def _deploy(self, repo, workflows, init) -> None:
       if init:
           self._delete_all_workflows_in_repository(repo)
-          self._create_new_file_in_repository(repo, workflows)
+          self._create_new_workflows_in_repository(repo, workflows)
       else:
-          self._update_file_in_repository(repo, workflows)
+          self._update_workflows_in_repository(repo, workflows)
 
 
   def _http_requests(self, url) -> list:
