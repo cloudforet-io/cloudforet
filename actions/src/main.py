@@ -6,7 +6,6 @@ logging.basicConfig(level=logging.INFO)
 ARGS = ap.parse_args()
 ORG_NAME = "cloudforet-io"
 
-
 def main():
     github = GithubConnector(ORG_NAME)
     init = ARGS.init
@@ -19,7 +18,6 @@ def main():
         deploy_to_group(github, group, init)
     else:
         sys.exit(1)
-
 
 def deploy_to_repository(github, repo_name, init) -> None:
     '''
@@ -36,7 +34,8 @@ def deploy_to_repository(github, repo_name, init) -> None:
         workflows = _get_workflows(group, repo_name_formatted)
 
     github._deploy(repo, workflows, init)
-
+    
+    _clean_up_old_workflow(github, repo, workflows)
 
 def deploy_to_group(github, group, init) -> None:
     '''
@@ -49,13 +48,26 @@ def deploy_to_group(github, group, init) -> None:
     for repo_name in  repo_names:
         deploy_to_repository(github, repo_name, init)
 
+def _clean_up_old_workflow(github, repo, workflows) -> None:
+    '''
+    Clean up old workflows that are not in the actual directory
+    '''
+
+    managed_workflows = []
+    for workflow in workflows:
+        for path,_ in workflow.items():
+            managed_workflows.append(path)
+
+    all_contents = repo.get_contents('.github/workflows')
+    for content in all_contents:
+        if "actions" in content.path and content.path not in managed_workflows:
+            github._delete(repo, content)
 
 def _format_repo_name(repo_name_full: str) -> str:
     '''
     Format repo name by deleting '{github organization name}/'
     '''
     return repo_name_full.split("/")[1]
-
 
 def _get_workflow_path(group, repo_name: str) -> str:
     '''
@@ -74,7 +86,6 @@ def _get_workflow_path(group, repo_name: str) -> str:
         sys.exit(1)
     except Exception as e:
         raise e
-
 
 def _get_workflows(group, repo_name ="None") -> list:
     '''
@@ -101,7 +112,6 @@ def _get_workflows(group, repo_name ="None") -> list:
 
     return workflows
 
-
 def _read_workflow(workflow_path, workflow_name) -> dict:
     '''
     read workflow file contents by path
@@ -115,7 +125,6 @@ def _read_workflow(workflow_path, workflow_name) -> dict:
     workflow_meta[path] = body
 
     return workflow_meta
-
 
 def _filter_match_repository_topics_to_group(group, repositories) -> list:
     '''
@@ -132,7 +141,6 @@ def _filter_match_repository_topics_to_group(group, repositories) -> list:
         sys.exit(1)
 
     return result
-
 
 def _get_group(repo) -> str:
     '''
@@ -155,7 +163,6 @@ def _get_group(repo) -> str:
 
     logging.error('There are no matching topics in the workflow group!')
     sys.exit(1)
-
 
 if __name__ == "__main__":
     main()
