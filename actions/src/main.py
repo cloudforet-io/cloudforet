@@ -94,7 +94,8 @@ def _get_workflows(group, repo_name ="None") -> list:
 
     workflows = []
     for workflow_name in workflow_list:
-
+        if os.path.isdir(f'{workflow_path}/{workflow_name}'):
+            continue
         workflow = _read_workflow(workflow_path, workflow_name)
         workflows.append(workflow)
 
