@@ -10,7 +10,6 @@ class GithubConnector():
     self.client = self._get_client()
     self.org_name = org_name
 
-
   def _get_client(self) -> object:
       token = os.getenv('PAT_TOKEN',None)
       
@@ -23,7 +22,6 @@ class GithubConnector():
       except Exception as e:
           raise e
 
-
   def _get_repo(self, repo_name) -> object:
       try:
           return self.client.get_repo(repo_name)
@@ -32,7 +30,6 @@ class GithubConnector():
           sys.exit(1)
       except Exception as e:
           raise e
-
 
   def _get_all_repositories(self) -> list:
       '''
@@ -50,17 +47,28 @@ class GithubConnector():
 
       return repositories
 
+  def _create_new_workflows_in_repository(self, repo, workflows) -> None:
+      for workflow in workflows:
+          self._create(repo,workflow)
 
-  def _delete_all_workflows_in_repository(self, repo) -> None:
+  def _update_workflows_in_repository(self, repo, workflows) -> None:
+      for workflow in workflows:
+          self._update(repo,workflow)
+
+  def _delete_all_workflow(self, repo) -> None:
+      contents = repo.get_contents(".github/workflows", ref="master")
+      for content in contents:
+          self._delete(repo, content)
+
+  def _delete(self, repo, content) -> None:
       try:
-          contents = repo.get_contents(".github/workflows", ref="master")
-          for content in contents:
-              message = f'CI: remove workflows ({content.path})'
-              repo.delete_file(path=content.path, message=message, sha=content.sha, branch="master")
+          message = f'CI: remove workflows ({content.path})'
+          repo.delete_file(path=content.path, message=message, sha=content.sha, branch="master")
+          logging.info(f'{content.path} has been deleted.')
       except UnknownObjectException as e:
           logging.warning(e)
 
-  def _create_new_workflow_in_repository(self, repo, workflow) -> None:
+  def _create(self, repo, workflow) -> None:
       try:
           for path,content in workflow.items():
               ret = repo.create_file(path=path, message="[CI] Deploy CI", content=content, branch="master")
@@ -70,11 +78,7 @@ class GithubConnector():
       except Exception as e:
           raise e
 
-  def _create_new_workflows_in_repository(self, repo, workflows) -> None:
-      for workflow in workflows:
-          self._create_new_workflow_in_repository(repo,workflow)
-
-  def _update_workflow_in_repository(self, repo, workflow) -> None:
+  def _update(self, repo, workflow) -> None:
       try:
           for path,content in workflow.items():
               contents = repo.get_contents(path,ref="master")
@@ -82,17 +86,13 @@ class GithubConnector():
               logging.info(f'file has been updated in {repo.full_name} : {ret}')
       except UnknownObjectException as e:
           logging.warning(f'failed to update to {repo.full_name}: {e}')
-          self._create_new_workflow_in_repository(repo, workflow)
+          self._create(repo, workflow)
       except Exception as e:
           raise e
 
-  def _update_workflows_in_repository(self, repo, workflows) -> None:
-      for workflow in workflows:
-          self._update_workflow_in_repository(repo,workflow)
-
   def _deploy(self, repo, workflows, init) -> None:
       if init:
-          self._delete_all_workflows_in_repository(repo)
+          self._delete_all_workflow(repo)
           self._create_new_workflows_in_repository(repo, workflows)
       else:
           self._update_workflows_in_repository(repo, workflows)
