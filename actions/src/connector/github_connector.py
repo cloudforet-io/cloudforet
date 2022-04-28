@@ -55,7 +55,7 @@ class GithubConnector():
       for workflow in workflows:
           self._update(repo,workflow)
 
-  def _delete_all_workflow(self, repo) -> None:
+  def _delete_all_workflows(self, repo) -> None:
       contents = repo.get_contents(".github/workflows", ref="master")
       for content in contents:
           self._delete(repo, content)
@@ -92,7 +92,7 @@ class GithubConnector():
 
   def _deploy(self, repo, workflows, init) -> None:
       if init:
-          self._delete_all_workflow(repo)
+          self._delete_all_workflows(repo)
           self._create_new_workflows_in_repository(repo, workflows)
       else:
           self._update_workflows_in_repository(repo, workflows)

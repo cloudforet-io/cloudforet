@@ -53,21 +53,14 @@ def _clean_up_old_workflow(github, repo, workflows) -> None:
     Clean up old workflows that are not in the actual directory
     '''
 
-    actual_workflow = []
+    managed_workflows = []
     for workflow in workflows:
         for path,_ in workflow.items():
-            actual_workflow.append(path)
+            managed_workflows.append(path)
 
     all_contents = repo.get_contents('.github/workflows')
-
-    actions_contents = []
     for content in all_contents:
-        content_name = content.path.split('/')[2]   # .github/workflows/*.yml
-        if "actions" in content_name:
-            actions_contents.append(content)
-
-    for content in actions_contents:
-        if content.path not in actual_workflow:
+        if "actions" in content.path and content.path not in managed_workflows:
             github._delete(repo, content)
 
 def _format_repo_name(repo_name_full: str) -> str:
