@@ -35,7 +35,7 @@
     - EVENT
         - When the workflow is triggered by `[Dispatch] Release`
         - When the workflow is triggered by `[Dispatch] Make final releases` in cloudforet-io/cloudforet
-        - When the workflow is triggered
+        - When the workflow is manually triggered
     - CONTENT
         - Create github tag
         - Build docker image and push to docker hub
@@ -43,7 +43,7 @@
     - EVENT
         - When code is pushed to master
             - (trigger `[Push] Build dev`)
-        - When the workflow is triggered    
+        - When the workflow is manually triggered    
     - CONTENT
         - [Push]
             - Get workflows from actions and Trigger `[Push] Build dev`
