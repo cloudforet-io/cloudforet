@@ -1,6 +1,6 @@
 ## Naming rule
 ```
-[EVENT] actions_{CONTENT}
+[Trigger_Type] Content
 ```
 
 ## Versionning
@@ -23,12 +23,12 @@
             - (triggered by `[Push] Sync CI`)
         - When the workflow is manually triggered
     - CONTENT
-        - Build code and push docker image to cloudforetdev
+        - Build code and push to registry
 - `[Dispatch] Release`
     - EVENT
         - When the workflow is manually triggered
     - CONTENT
-        - Build code and push docker image to cloudforetdev and cloudforet
+        - Build code and push to registry
 - `[Push] Sync CI`
     - EVENT
         - When code is pushed to master
@@ -38,9 +38,7 @@
         - [Push]
             - Get workflows from actions and Trigger `[Push] Build dev`
         - [Dispatch]
-            - Just get workflows from actions
-        
-- `[PR] Review (TODO)`
+            - Just get workflows from cloudforet/actions
 
 ## Scenario
 - Release: 
