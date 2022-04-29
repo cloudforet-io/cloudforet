@@ -1,9 +1,9 @@
 ## Naming rule
 ```
-[EVENT] actions_{CONTENT}
+[Trigger_Type] Content
 ```
 
-## Versionning
+## Versioning
 - format
 ```
 {major}.{minor}.{patch}.{current_date|rc[n]}
@@ -22,20 +22,20 @@
     - EVENT
         - When code is pushed to master
             - (triggered by `[Push] Sync CI`)
-        - When the workflow is manually triggered
+        - When the workflow is triggered
     - CONTENT
         - Build code and push docker image to cloudforetdev
 - `[Dispatch] Release`
     - EVENT
-        - When the workflow is manually triggered by `[Dispatch] Create all release branch` in cloudforet-io/cloudforet
+        - When the workflow is triggered by `[Dispatch] Create all release branch` in cloudforet-io/cloudforet
     - CONTENT
         - Create github release branch
         - Trigger `[Dispatch] Branch tagging`
 - `[Dispatch] Branch tagging`
     - EVENT
-        - When the workflow is manually triggered by `[Dispatch] Release`
-        - When the workflow is manually triggered by `[Dispatch] Make final releases` in cloudforet-io/cloudforet
-        - When the workflow is manually triggered
+        - When the workflow is triggered by `[Dispatch] Release`
+        - When the workflow is triggered by `[Dispatch] Make final releases` in cloudforet-io/cloudforet
+        - When the workflow is triggered
     - CONTENT
         - Create github tag
         - Build docker image and push to docker hub
@@ -43,15 +43,15 @@
     - EVENT
         - When code is pushed to master
             - (trigger `[Push] Build dev`)
-        - When the workflow is manually triggered    
+        - When the workflow is triggered    
     - CONTENT
         - [Push]
             - Get workflows from actions and Trigger `[Push] Build dev`
         - [Dispatch]
-            - Just get workflows from actions
+            - Just get workflows from cloudforet/actions
 - `[Dispatch] Update version file`
     - EVENT
-        - When the workflow is manually triggered by `[Dispatch] Branch tagging`
+        - When the workflow is triggered by `[Dispatch] Branch tagging`
     - CONTENT
         -  Update version file
 
