@@ -1,6 +1,6 @@
 ## Naming rule
 ```
-[EVENT] CONTENT
+[EVENT] actions_{CONTENT}
 ```
 
 ## Versionning
