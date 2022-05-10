@@ -57,8 +57,10 @@ class GithubConnector():
 
   def _delete_all_workflows(self, repo) -> None:
       contents = repo.get_contents(".github/workflows", ref="master")
+
       for content in contents:
-          self._delete(repo, content)
+          if "actions" in content.path:
+            self._delete(repo, content)
 
   def _delete(self, repo, content) -> None:
       try:
