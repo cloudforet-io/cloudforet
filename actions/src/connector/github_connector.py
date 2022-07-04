@@ -10,19 +10,7 @@ class GithubConnector():
     self.client = self._get_client()
     self.org_name = org_name
 
-  def _get_client(self) -> object:
-      token = os.getenv('PAT_TOKEN',None)
-      
-      if not token:
-          logging.error('PAT_TOKEN does not set')
-          sys.exit(1)
-
-      try:
-          return Github(token)
-      except Exception as e:
-          raise e
-
-  def _get_repo(self, repo_name) -> object:
+  def get_repo(self, repo_name) -> object:
       try:
           return self.client.get_repo(repo_name)
       except UnknownObjectException as e:
@@ -31,7 +19,7 @@ class GithubConnector():
       except Exception as e:
           raise e
 
-  def _get_all_repositories(self) -> list:
+  def get_all_repositories(self) -> list:
       '''
       get all repositories from github using github api
       '''
@@ -47,6 +35,21 @@ class GithubConnector():
 
       return repositories
 
+  def get_topic(self):
+      return
+
+  def _get_client(self) -> object:
+      token = os.getenv('PAT_TOKEN', None)
+
+      if not token:
+          logging.error('PAT_TOKEN does not set')
+          sys.exit(1)
+
+      try:
+          return Github(token)
+      except Exception as e:
+          raise e
+
   def _create_new_workflows_in_repository(self, repo, workflows) -> None:
       for workflow in workflows:
           self._create(repo,workflow)
@@ -60,7 +63,7 @@ class GithubConnector():
       for content in contents:
           self._delete(repo, content)
 
-  def _delete(self, repo, content) -> None:
+  def delete(self, repo, content) -> None:
       try:
           message = f'CI: remove workflows ({content.path})'
           repo.delete_file(path=content.path, message=message, sha=content.sha, branch="master")
@@ -90,7 +93,7 @@ class GithubConnector():
       except Exception as e:
           raise e
 
-  def _deploy(self, repo, workflows, init) -> None:
+  def deploy(self, repo, workflows, init) -> None:
       if init:
           self._delete_all_workflows(repo)
           self._create_new_workflows_in_repository(repo, workflows)
