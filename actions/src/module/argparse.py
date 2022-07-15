@@ -1,6 +1,7 @@
 import argparse
 import textwrap
 
+
 def parse_args():
     parser = argparse.ArgumentParser(
         description='File push to github repository',
@@ -16,10 +17,10 @@ def parse_args():
     group = parser.add_mutually_exclusive_group(required=True)
 
     group.add_argument('--repo', metavar='<owner/repo>',
-                        help='Select specified repository.')
+                       help='Select specified repository.')
 
     group.add_argument('--group', metavar='<group_name>',
-                        help='Select specified group.')
+                       help='Select specified group.')
 
     parser.add_argument('--init', action='store_true', default=False,
                         help='Deploy sync workflow only.')
