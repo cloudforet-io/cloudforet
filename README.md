@@ -1,6 +1,6 @@
-# SpaceONE Community
+# Cloudforet Community
 
-Welcome to the SpaceONE community!
+Welcome to the Cloudforet community!
 
 - [Community Map](#Community-Map)
 - [Membership](#Membership)
@@ -8,17 +8,13 @@ Welcome to the SpaceONE community!
 - [Developer Guides](#Developer-Guides)
 - [Communication](#Communication)
 
-## Community Map
-There are lots of starting points for joining and contributing to the SpaceONE community - improving docs, improving code, giving talks etc.
-![](docs/spaceone-community-map.png)
- 
 ## Membership
 We depend on new people becoming members and regular code contributors, so we would like you to come join us!
-The SpaceONE project is divided into subprojects. Responsibilities for most roles are scoped to these subprojects.
+The Cloudforet project is divided into subprojects. Responsibilities for most roles are scoped to these subprojects.
 
 | Role  | Responsibilities | Requirements   | Definded by |
 | ----  | ---------------- | -------------- | ----------- |
-| member | active contributor in the community | N/A  | SpaceONE Github org member. |
+| member | active contributor in the community | N/A  | Cloudforet Github org member. |
 | reviewer | review contributions from other members | history of review and authorship in a subproject | [OWNERS] file reviewer entry. |
 | approver | approve accepting contributions | highly experienced and active reviewer + contributor to a subproject | [OWNERS] file approver entry |
 | subproject owner | set direction and priorities for a subproject | demonstrated responsibility and excellent technical judgement for the subproject | [OWNERS] file *owners* entry |
@@ -33,20 +29,8 @@ The SpaceONE project is divided into subprojects. Responsibilities for most role
 
 ## Communication
 
-### Gitter
+[Cloudforet Q&A]
 
-Our real-time communication channel. Any github user can join.
-
-[SpaceONE Q&A]
-
-### Mailing List
-
-The SpaceONE mailing lists are hosted through groups.io.
-
-[Join] | [Mailing List]
-
-[User Guides]: https://spaceone-dev.gitbook.io/user-guide/
-[Developer Guides]: https://spaceone-dev.github.io/introduction/
-[SpaceONE Q&A]: https://gitter.im/spaceone-dev/QnA
-[Mailing List]: https://groups.io/g/spaceone
-[Join]: https://groups.io/g/spaceone/join
+[User Guides]: https://cloudforet.io/docs/guides/
+[Developer Guides]: https://cloudforet.io/docs/developers/
+[Cloudforet Q&A]: https://github.com/cloudforet-io/community/discussions
