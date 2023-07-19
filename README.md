@@ -1,3 +1,11 @@
+<p align="center">
+  <img width="2051" alt="docs-thumbnail" src="https://raw.githubusercontent.com/cloudforet-io/artwork/5a4a89390cd7bcc71ad2b5b79e0a77f1680f7b9c/illustrations/wonny-and-friends.png">
+</p>
+
+<p align="center">
+  <a href='http://makeapullrequest.com'><img alt='PRs Welcome' src='https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=shields'/></a>
+</p>
+
 # Cloudforet Community
 
 Welcome to the Cloudforet community!
