@@ -4,6 +4,7 @@
 
 <p align="center">
   <a href='http://makeapullrequest.com'><img alt='PRs Welcome' src='https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=shields'/></a>
+  <a href="https://bestpractices.coreinfrastructure.org/projects/7555"><img src="https://bestpractices.coreinfrastructure.org/projects/7555/badge"></a>
 </p>
 
 # Cloudforet Community
