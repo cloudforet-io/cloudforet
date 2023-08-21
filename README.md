@@ -7,6 +7,11 @@
   <a href="https://bestpractices.coreinfrastructure.org/projects/7555"><img src="https://bestpractices.coreinfrastructure.org/projects/7555/badge"></a>
 </p>
 
+# What is Cloudforet?
+
+Cloudforet is a multi & hybrid cloud management platform which enables seamless control and optimization of resources across diverse cloud environments. This empowers businesses to efficiently manage both public and private clouds, ensuring flexibility, scalability, and resource allocation. Through unified monitoring, automation, and security measures, this platform streamlines complex cloud operations. With a centralized interface, teams gain holistic insights and operational efficiency, enabling them to harness the advantages of multiple cloud infrastructures cohesively.
+
+
 # Cloudforet Community
 
 Welcome to the Cloudforet community!
