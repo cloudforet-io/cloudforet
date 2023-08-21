@@ -10,6 +10,8 @@
 
 # What is Cloudforet?
 
+Cloudforet is a series of Linux Foundation Open-Source Projects.
+
 Cloudforet is a multi & hybrid cloud management platform which enables seamless control and optimization of resources across diverse cloud environments. This empowers businesses to efficiently manage both public and private clouds, ensuring flexibility, scalability, and resource allocation. Through unified monitoring, automation, and security measures, this platform streamlines complex cloud operations. With a centralized interface, teams gain holistic insights and operational efficiency, enabling them to harness the advantages of multiple cloud infrastructures cohesively.
 
 # Getting Started
@@ -24,6 +26,12 @@ Community support is provided via [Github Discussions]; see the Resources below 
 
 Here is a quick summary of resources to help you find your way around:
 
+# License
+
+Cloudforet has an Apache license, as found in the [LICENSE] file.
+
+
 [Introduction to Cloudforet]: https://docs.google.com/presentation/d/1Lh8yaXcARhcAi4ewwpl-WIh0Au12GwbbhTUbgdbvXnk/edit?usp=sharing
 [Getting Started Guide]: https://cloudforet.io/docs/setup_operation/quick_install/
 [Github Discussions]: https://github.com/orgs/cloudforet-io/discussions
+[LICENSE]: https://github.com/cloudforet-io/cloudforet/blob/master/LICENSE
