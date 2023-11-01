@@ -2,20 +2,23 @@
 
 ## Supported Versions
 
-Use this section to tell people about which versions of your project are
-currently being supported with security updates.
-
 | Version | Supported          |
 | ------- | ------------------ |
-| 5.1.x   | :white_check_mark: |
-| 5.0.x   | :x:                |
-| 4.0.x   | :white_check_mark: |
-| < 4.0   | :x:                |
+| 1.12.x  | :white_check_mark: |
+| 1.11.x  | :white_check_mark: |
+| <= 1.10.x  | :x:             |
+
 
 ## Reporting a Vulnerability
 
-Use this section to tell people how to report a vulnerability.
+We're extremely grateful for security researchers and users that report vulnerabilities to the Cloudforet Open Source Community. All reports are thoroughly investigated by a set of community volunteers.
 
-Tell them where to go, how often they can expect to get an update on a
-reported vulnerability, what to expect if the vulnerability is accepted or
-declined, etc.
+You can email the private security@cloudforet.io list with the security details.
+
+# When Should I Report a Vulnerability?
+
+* You think you discovered a potential security vulnerability in Cloudforet
+* You are unsure how a vulnerability affects Cloudforet
+* You think you discovered a vulnerability in another project that Cloudforet depends on
+* For projects with their own vulnerability reporting and disclosure process, please report it directly there
+
