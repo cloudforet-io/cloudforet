@@ -15,7 +15,7 @@ We're extremely grateful for security researchers and users that report vulnerab
 
 You can email the private security@cloudforet.io list with the security details.
 
-# When Should I Report a Vulnerability?
+## When Should I Report a Vulnerability?
 
 * You think you discovered a potential security vulnerability in Cloudforet
 * You are unsure how a vulnerability affects Cloudforet
