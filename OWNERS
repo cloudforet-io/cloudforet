@@ -1,5 +1,6 @@
-# See the OWNERS docs at https://www.spaceone.dev/owners
+# See the OWNERS docs at https://github.com/cloudforet-io/tsc/blob/master/OWNERS.md
 
 approvers:
   - choonho
-  - hansh0801
+  - whdalsrnt
+  - jihyungSong
